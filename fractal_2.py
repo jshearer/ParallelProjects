@@ -45,7 +45,6 @@ def genChunk(position,size,zoom,iterations):
 #scale is a number that allows you to reduce the zoom and dimensions simultaneously 
 #in order to render a lower-res version of the same fractal
 def gen(position,zoom,dimensions,name,scale=1,squaresize=50,processes=4,scd=False,silent=False, iterations=100): #scale change dimensions
-	print "lol"
 	scale = 1.0/scale
 	procPool = Pool(processes=processes)
 
