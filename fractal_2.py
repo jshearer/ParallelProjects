@@ -45,13 +45,13 @@ def genChunk(position,size,zoom,iterations):
 #scale is a number that allows you to reduce the zoom and dimensions simultaneously 
 #in order to render a lower-res version of the same fractal
 def gen(position,zoom,dimensions,name,scale=1,squaresize=50,processes=4,scd=False,silent=False, iterations=100): #scale change dimensions
+	print "lol"
 	scale = 1.0/scale
 	procPool = Pool(processes=processes)
 
 	#to correct, not sure why the problem occurs in the first place.
 	position.reverse()
 	dimensions.reverse()
-
 	zoom = zoom/scale
 	if scd:
 		dimensions = (int(dimensions[0]/scale),int(dimensions[1]/scale))
@@ -62,8 +62,7 @@ def gen(position,zoom,dimensions,name,scale=1,squaresize=50,processes=4,scd=Fals
 
 	startime = time.time()
 
-	#result = numpy.zeros((dimensions[0],dimensions[1]),dtype=numpy.uint8)
-	grad = {-999999999999:(0,0,0,255),
+	grad = {-999999999999:(0,0,0,255), #Color data
 				3:(255,0,0,255),
 				2:(255,0,100,255),
 				1:(255,0,200,255),
@@ -83,9 +82,7 @@ def gen(position,zoom,dimensions,name,scale=1,squaresize=50,processes=4,scd=Fals
 		pos = (data[1][0]-position[0],data[1][1]-position[1])
 		size = data[2]
 		data = data[0] #overwrite
-		#print "Called back. "+str(pos)
 		if not silent:
-			#print str(done[0])+"/"+str(num)+", "+str((done[0]/float(num))*100.0)+"%"
 			pct = int((done[0]/float(num))*100.0*0.3)
 			sys.stdout.write("\r["+("#"*pct)+(" "*(30-pct))+"] "+str(int((done[0]/float(num))*100.0))+"% <"+str(int(time.time()-startime))+"s>")
 		dat = 0
@@ -109,10 +106,8 @@ def gen(position,zoom,dimensions,name,scale=1,squaresize=50,processes=4,scd=Fals
 
 	procPool.close()
 	procPool.join()
-	#result[dimensions[0]/2,dimensions[1]/2]=255
 	Image.fromarray(result,"RGB").save(name)
 
-#gen((-320,900),1050,(400,400),squaresize=100,scale=0.01,processes=4)
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description="A program to generate a fractal image. \nIn the case of 2-argument flags (such as --position), the arguments should be space-seperated. As in: --position 10 10", epilog='''Example usage:
 	./fractal.py -p 0 0 -z 50 -d 200 200 -- This will render a 200x200 image, with the fractal centered, and zoomed to 50.
@@ -135,7 +130,6 @@ parser.add_argument('--scale','-s', type=float, default=1, help="The scale multi
 parser.add_argument('--processes','-procs', type=int, default=4, help="The number of processes to use for multi-process rendering. This is usually the number of CPU cores you have.")
 parser.add_argument('-m', dest="scd", action="store_true", help="If this flag is set, then the scale argument will also modify the dimensions of the image.")
 parser.add_argument('--iterations','-i', dest="iters", default=50, type=int, help="The maximum number of iterations the generator will go through, per pixel. The higher this is, the more accurate the fractal will be, and the slower the generation will be. It will be especially slow in places where the pixel is inside the shape, in which case the loop would go on for ever without a limit.")
-#parser.add_argument('--silent', dest="silent", action="store_true", help="Make the chunk generation silent. Note this also silences any errors that may be produced.")
 parser.add_argument('--calculate', action="store_true", dest="calc", help="If this flag is set, no fractal will be rendered. Instead, scale will be applied, and the resulting values will be printed out, so that you can use them without using scale. (Work on this description...)")
 parser.add_argument('--blocksize', dest="bsize", type=int, default=50, help="Set the block generation size. Default 50.")
 parser.add_argument('name', help="The name of the output file. This can have any image extension supported by PIL.")
@@ -160,8 +154,10 @@ if args['calc']:
 	print "./fractal.py -p "+str(position[1])+" "+str(position[0])+" -d "+str(dimensions[1])+" "+str(dimensions[0])+" -z "+str(zoom)
 else:
 	try:
+		print gen
 		os.system("setterm -cursor off")
-		gen(args['position'],args['zoom'],args['dimensions'],args['name'], processes=args['processes'], scd=args['scd'], scale=args['scale'], silent=args['silent'], iterations=args['iters'], squaresize=args['bsize'])
+		gen(args['position'],args['zoom'],args['dimensions'],args['name'], processes=args['processes'], scd=args['scd'], scale=args['scale'], iterations=args['iters'], squaresize=args['bsize'])
 		os.system("setterm -cursor on")
-	except:
+	except Exception as exc:
 		os.system("setterm -cursor on")
+		traceback.print_exc(file=sys.stdout)
