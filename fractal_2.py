@@ -153,7 +153,6 @@ if args['calc']:
 	print "./fractal.py -p "+str(position[1])+" "+str(position[0])+" -d "+str(dimensions[1])+" "+str(dimensions[0])+" -z "+str(zoom)
 else:
 	try:
-		print gen
 		os.system("setterm -cursor off")
 		gen(args['position'],args['zoom'],args['dimensions'],args['name'], processes=args['processes'], scd=args['scd'], scale=args['scale'], iterations=args['iters'], squaresize=args['bsize'])
 		os.system("setterm -cursor on")
