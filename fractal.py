@@ -34,7 +34,7 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],float *zoo
 				float z_real = cuCrealf(z);
 				float z_imag = cuCimagf(z);
 				if((z_real*z_real + z_imag*z_imag)>4){
-					result[x+y*(size[1]*(realBlockDim[1]))] = i;
+					result[x+(y*size[0]*realBlockDim[0])] = i;
 					break;
 				}
 			}
@@ -46,14 +46,14 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],float *zoo
 print("Compiled and got function gen")
 #Variable setup section
 block = (40,40,1) #number of GPU cores launched is block[0]*block[1]
-size = numpy.array([int(math.ceil(350.0/float(block[0]))),int(math.ceil(350.0/float(block[1])))],dtype=numpy.int32) #This is the chunk size each core is to calculate, in parallel
-zoom = numpy.float32(270) #higher number = more zoomed in. Supposed to zoom into the center, scaling around position.
-iterations = numpy.int32(600) #max number of iterations. Make higher for more pretty
+size = numpy.array([int(math.ceil(2000.0/float(block[0]))),int(math.ceil(1000.0/float(block[1])))],dtype=numpy.int32) #This is the chunk size each core is to calculate, in parallel
+zoom = numpy.float32(4000) #higher number = more zoomed in. Supposed to zoom into the center, scaling around position.
+iterations = numpy.int32(17) #max number of iterations. Make higher for more pretty
 
-position = numpy.array([-1,0],dtype=numpy.float32) #change this to offset fractal
+position = numpy.array([-1.45,0],dtype=numpy.float32) #change this to offset fractal
 
 #this math makes it so when you increase zoom, it acts like you would expect. Otherwise it would zoom around the origin, which no one wants.
-scale = 10.0 #if you do, just comment this out
+scale = 1.0 #if you do, just comment this out
 
 size = (size.astype(numpy.float32)*float(scale)).astype(numpy.int32)
 res_shape = (size[0]*block[0],size[1]*block[1]) #Shape for the output array, that is passed into the kernel
@@ -74,11 +74,9 @@ print("Done running. synched.")
 print(result)
 
 print("Resizing result to be in range 0-255")
-result = result.astype(numpy.float32)*(255.0/iterations)
+result = (result.astype(numpy.float32)*(255.0/result.max())).astype(numpy.uint8)
 print("Done resizing. Now generating image array.")
 
-result2 = numpy.hstack((result,result,result))
-result2.resize((result.shape[0],result.shape[1],3))
-result2 = result2.astype(numpy.uint8)
+result = result.reshape((result.shape[1],result.shape[0]))
 
-Image.fromarray(result2,"RGB").save("testfractal.png")
+Image.fromstring("L",(result.shape[1],result.shape[0]),result.tostring()).save("testfractal.png")
