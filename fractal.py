@@ -22,18 +22,21 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],float *zoo
 {	
 	int startx = blockIdx.x*size[0];
 	int starty = blockIdx.y*size[1];
-	for(int x = startx; x <= size[0]+startx; x++){
-		for(int y = starty; y <= size[1]+starty; y++){
-			float t_x = (x+position[0])/(*zoom);
-			float t_y = (y+position[1])/(*zoom);
-			int i;
-			cuFloatComplex z = make_cuFloatComplex(t_x,t_y);
-			cuFloatComplex z_unchanging = make_cuFloatComplex(t_x,t_y); //optomize this with pointer magic?
+	float t_x, t_y;
+	int i, x, y;
+	cuFloatComplex z, z_unchanging;
+	float z_real, z_imag;
+	for(x = startx; x <= size[0]+startx; x++){
+		for(y = starty; y <= size[1]+starty; y++){
+			t_x = (x+position[0])/(*zoom);
+			t_y = (y+position[1])/(*zoom);
+			z = make_cuFloatComplex(t_x,t_y);
+			z_unchanging = make_cuFloatComplex(t_x,t_y); //optomize this with pointer magic?
 			for(i = 0; i<(*iterations) + 1; i++){
 				z = cuCmulf(z,z);
 				z = cuCaddf(z,z_unchanging);
-				float z_real = cuCrealf(z);
-				float z_imag = cuCimagf(z);
+				z_real = cuCrealf(z);
+				z_imag = cuCimagf(z);
 				if((z_real*z_real + z_imag*z_imag)>4){
 					result[x+(y*size[0]*realBlockDim[0])] = i;
 					break;
