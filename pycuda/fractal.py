@@ -62,37 +62,13 @@ def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1)):
 	position = position - (Vector(result.shape[0],result.shape[1])/2)
 	position = numpy.array([int(position.x),int(position.y)]).astype(numpy.float32)
 
-	progress = cuda.pagelocked_zeros((1,1),numpy.int32,mem_flags=cuda.host_alloc_flags.DEVICEMAP)
-	progress[0,0] = 0
-	progressp = numpy.intp(progress.base.get_device_pointer())
-
-	print("Starting timer. Calling CUDA function.")
+	print("Calling CUDA function. Starting timer.")
 	start_time = time.time()
-	stream = cuda.Stream() #concurrency
-	#
-	ch_size = cuda.In(chunkSize) 
-	pos = cuda.In(position)
-	bdm = cuda.In(blockDim)
-	zo = cuda.In(zoom)
-	ite = cuda.In(iterations)
-	res = cuda.In(result)
-	#
-	genChunk(ch_size, pos, bdm, zo, ite, res, progressp, block=(1,1,1), grid=block, stream=stream)
-	print("finished calling genChunk")
-	
-	done = progress[0]>=(block[0]*block[1])
-	oldp = progress[0,0]
-	while not done:
-		done = progress[0]>=(block[0]*block[1])
-		if oldp is not progress[0,0]:
-			print progress[0,0]
-			oldp = progress[0,0]
-	stream.synchronize()
-IF NONE OF THIS MAKES SENSE JUST FUCKING REVERT. IT WAS LATE GOD DAMN IT I CANT KEEP MY EYES OPEN. THIS SEEMS TO BE CALLING ASYNC FINE, BUT PROGRESS ISNT GETTING UPDATED OR SOME SHIT
-FIX IT OR WRITE IT AGAIN. THE LAST COMMIT WORKS GREAT. PEACE OUT FUCKER
+
+	genChunk(cuda.In(chunkSize), cuda.In(position), cuda.In(blockDim), cuda.In(zoom), cuda.In(iterations), cuda.InOut(result), block=(1,1,1), grid=block)
 	end_time = time.time()
 	elapsed_time = end_time-start_time
-	print(str(progress[0,0])+" Done with call. Took "+str(elapsed_time)+" seconds. Here's the repr'd arary:\n")
+	print("Done with call. Took "+str(elapsed_time)+" seconds. Here's the repr'd arary:\n")
 	result[result.shape[0]/2,result.shape[1]/2]=iterations+1
 	print(result)
 	return result
