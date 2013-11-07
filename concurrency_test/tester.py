@@ -17,13 +17,17 @@ __global__ void increment(int* a,float* progress)
 """).get_function("increment")
 print("Compiled and got function increment")
 
+def In(thing):
+	thing_pointer = cuda.mem_alloc(thing.nbytes)
+	cuda.memcpy_htod(thing_pointer, thing)
+	return thing_pointer
+
 pagelocked_mem = cuda.pagelocked_zeros((1,1),numpy.float32, mem_flags=cuda.host_alloc_flags.DEVICEMAP)
 pagelocked_mem_ptr = numpy.intp(pagelocked_mem.base.get_device_pointer())
 print(pagelocked_mem[0,0])
 
 a = numpy.int32(345)
-a_gpu = cuda.mem_alloc(a.nbytes)
-cuda.memcpy_htod(a_gpu,a)
+a_gpu = In(a)
 
 
 increment(a_gpu,pagelocked_mem_ptr, block=(1,1,1), grid=(50,50,1))

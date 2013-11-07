@@ -18,7 +18,7 @@ from pycuda.compiler import SourceModule
 
 genChunk = SourceModule("""
 #include <cuComplex.h>
-__global__ void gen(int size[2],float position[2],int realBlockDim[2],float *zoom,int *iterations,int *result, float* progress)
+__global__ void gen(int size[2],float position[2],int realBlockDim[2],float *zoom,int *iterations,int *result, int* progress)
 {	
 	int startx = blockIdx.x*size[0];
 	int starty = blockIdx.y*size[1];
@@ -94,9 +94,15 @@ def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1), report=
 	genChunk(chunkS, posit, blockD, zoo, iters, res, ppc_ptr, block=(1,1,1), grid=block)
 	
 	if report:
-		print "Reporting up to "+str((dimensions[0]*dimensions[1]))+", "+str(ppc[0,0])
+		total = (dimensions[0]*dimensions[1])
+		print "Reporting up to "+str(total)+", "+str(ppc[0,0])
 		while ppc[0,0] < ((dimensions[0]*dimensions[1])):
-			print "Progress report: "+str(ppc)
+			pct = (ppc[0,0]*25)/(total)
+			hashes = "#"*pct
+			dashes = "-"*(25-pct)
+			print "\r["+hashes+dashes+"] "+str((pct*4))+"%",
+			time.sleep(0.1)
+
 
 	cuda.Context.synchronize()
 	print "Done. "+str(ppc[0,0])
