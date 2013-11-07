@@ -24,17 +24,25 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],float *zoo
 	int starty = blockIdx.y*size[1];
 	float t_x, t_y;
 	int i, x, y;
-	cuFloatComplex z, z_unchanging;
+
+	cuFloatComplex z = cuFloatComplex();
+	cuFloatComplex z_unchanging = cuFloatComplex();
+
 	float z_real, z_imag;
-	for(x = startx; x <= size[0]+startx; x++){
-		for(y = starty; y <= size[1]+starty; y++){
+	for(x = startx; x < size[0]+startx; x++){
+		for(y = starty; y < size[1]+starty; y++){
+			atomicAdd(progress,1);
 			t_x = (x+position[0])/(*zoom);
 			t_y = (y+position[1])/(*zoom);
-			z = make_cuFloatComplex(t_x,t_y);
-			z_unchanging = make_cuFloatComplex(t_x,t_y); //optomize this with pointer magic?
+
+			z.x = t_x;
+			z.y = t_y;
+			z_unchanging.x = t_x;
+			z_unchanging.y = t_y; //optomize this with pointer magic?
+
 			for(i = 0; i<(*iterations) + 1; i++){
 				z = cuCmulf(z,z);
-				z = cuCaddf(z,z_unchanging);
+				z = cuCaddf(z,z_unchanging); //z = z^2 + z_orig
 				z_real = cuCrealf(z);
 				z_imag = cuCimagf(z);
 				if((z_real*z_real + z_imag*z_imag)>4){
@@ -44,13 +52,17 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],float *zoo
 			}
 		}
 	}
-	atomicAdd(progress,1);
 }
 
 """).get_function("gen")
 print("Compiled and got function gen")
 
-def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1)):
+def In(thing):
+	thing_pointer = cuda.mem_alloc(thing.nbytes)
+	cuda.memcpy_htod(thing_pointer, thing)
+	return thing_pointer
+
+def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1), report=False):
 	chunkSize = numpy.array([dimensions[0]/block[0],dimensions[1]/block[1]],dtype=numpy.int32)
 	zoom = numpy.float32(zoom)
 	iterations = numpy.int32(iterations)
@@ -62,15 +74,41 @@ def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1)):
 	position = position - (Vector(result.shape[0],result.shape[1])/2)
 	position = numpy.array([int(position.x),int(position.y)]).astype(numpy.float32)
 
-	print("Calling CUDA function. Starting timer.")
+	#For progress reporting:
+	ppc = cuda.pagelocked_zeros((1,1),numpy.int32, mem_flags=cuda.host_alloc_flags.DEVICEMAP) #pagelocked progress counter
+	ppc[0,0] = 0
+	ppc_ptr = numpy.intp(ppc.base.get_device_pointer()) #pagelocked memory counter, device pointer to
+	#End progress reporting
+
+	#Copy parameters over to device
+	chunkS = In(chunkSize)
+	posit = In(position)
+	blockD = In(blockDim)
+	zoo = In(zoom)
+	iters = In(iterations)
+	res = In(result)
+
+	print("Calling CUDA function. Starting timer. progress starting at: "+str(ppc[0,0]))
 	start_time = time.time()
 
-	genChunk(cuda.In(chunkSize), cuda.In(position), cuda.In(blockDim), cuda.In(zoom), cuda.In(iterations), cuda.InOut(result), block=(1,1,1), grid=block)
+	genChunk(chunkS, posit, blockD, zoo, iters, res, ppc_ptr, block=(1,1,1), grid=block)
+	
+	if report:
+		print "Reporting up to "+str((dimensions[0]*dimensions[1]))+", "+str(ppc[0,0])
+		while ppc[0,0] < ((dimensions[0]*dimensions[1])):
+			print "Progress report: "+str(ppc)
+
+	cuda.Context.synchronize()
+	print "Done. "+str(ppc[0,0])
+	#Copy result back from device
+	cuda.memcpy_dtoh(result, res)
+
 	end_time = time.time()
 	elapsed_time = end_time-start_time
 	print("Done with call. Took "+str(elapsed_time)+" seconds. Here's the repr'd arary:\n")
 	result[result.shape[0]/2,result.shape[1]/2]=iterations+1
 	print(result)
+	return result
 	return result
 
 def SaveToPng(result,name):
