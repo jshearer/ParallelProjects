@@ -11,6 +11,9 @@ import time
 import traceback
 import math
 import time
+import locale
+
+locale.setlocale(locale.LC_ALL, 'en_US.UTF_8')
 
 import pycuda.driver as cuda
 import pycuda.autoinit
@@ -62,7 +65,7 @@ def In(thing):
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
 
-def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1), report=False):
+def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1), report=False, silent=False):
 	chunkSize = numpy.array([dimensions[0]/block[0],dimensions[1]/block[1]],dtype=numpy.int32)
 	zoom = numpy.float32(zoom)
 	iterations = numpy.int32(iterations)
@@ -88,7 +91,8 @@ def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1), report=
 	iters = In(iterations)
 	res = In(result)
 
-	print("Calling CUDA function. Starting timer. progress starting at: "+str(ppc[0,0]))
+	if not silent:
+		print("Calling CUDA function. Starting timer. progress starting at: "+str(ppc[0,0]))
 	start_time = time.time()
 
 	genChunk(chunkS, posit, blockD, zoo, iters, res, ppc_ptr, block=(1,1,1), grid=block)
@@ -97,24 +101,27 @@ def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1), report=
 		total = (dimensions[0]*dimensions[1])
 		print "Reporting up to "+str(total)+", "+str(ppc[0,0])
 		while ppc[0,0] < ((dimensions[0]*dimensions[1])):
-			pct = (ppc[0,0]*25)/(total)
+			pct = (ppc[0,0]*100)/(total)
 			hashes = "#"*pct
-			dashes = "-"*(25-pct)
-			print "\r["+hashes+dashes+"] "+str((pct*4))+"%",
-			time.sleep(0.1)
+			dashes = "-"*(100-pct)
+			print "\r["+hashes+dashes+"] "+locale.format("%i",ppc[0,0],grouping=True)+"/"+locale.format("%i",total,grouping=True),
+			time.sleep(0.00001)
 
 
 	cuda.Context.synchronize()
-	print "Done. "+str(ppc[0,0])
+	if not silent:
+		print "Done. "+str(ppc[0,0])
+
 	#Copy result back from device
 	cuda.memcpy_dtoh(result, res)
 
-	end_time = time.time()
-	elapsed_time = end_time-start_time
-	print("Done with call. Took "+str(elapsed_time)+" seconds. Here's the repr'd arary:\n")
+	if not silent: 
+		end_time = time.time()
+		elapsed_time = end_time-start_time
+		print("Done with call. Took "+str(elapsed_time)+" seconds. Here's the repr'd arary:\n")
+		print(result)
+		
 	result[result.shape[0]/2,result.shape[1]/2]=iterations+1
-	print(result)
-	return result
 	return result
 
 def SaveToPng(result,name):
