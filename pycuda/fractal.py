@@ -121,7 +121,7 @@ def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1), report=
 		print("Done with call. Took "+str(elapsed_time)+" seconds. Here's the repr'd arary:\n")
 		print(result)
 		
-	result[result.shape[0]/2,result.shape[1]/2]=iterations+1
+	result[result.shape[0]/2,result.shape[1]/2]=iterations+1 #mark center of image
 	return result
 
 def SaveToPng(result,name):
