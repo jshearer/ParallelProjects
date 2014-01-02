@@ -29,4 +29,3 @@ def getGradCol(number,colors):
 					  lerp(colors[start][2],colors[end][2],pctage),
 					  lerp(colors[start][3],colors[end][3],pctage))
 	return endcol
-
