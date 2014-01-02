@@ -1,0 +1,2 @@
+./fractal_2.py -p 0 -29.65 -d 400 1500 -z 20 -s 230 fract.png
+./fractal_2.py -p -8300 -1360500 -d 600 300 -z 920000.0 -s 4 -m -i 100 fract.png
