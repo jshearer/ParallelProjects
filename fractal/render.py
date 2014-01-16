@@ -5,7 +5,7 @@ from PIL import Image
 def SaveToPng(result,name,gradient,silent=False):
 	lookup = {}
 
-	gradient = remapGradient(gradient,0,255)
+	gradient = remapGradient(gradient,0,256)
 
 	for i in range(0,256):
 		lookup[i] = getGradCol(i,gradient)
@@ -41,6 +41,26 @@ def SaveToPng(result,name,gradient,silent=False):
 	if not silent:
 		print("Image file written.")
 
+def renderGradient(gradient,name):
+	keys = sorted(gradient.keys())
+
+	scale = 1
+	
+	leng = 0
+	oldi = 0
+	for k in keys:
+		leng = (leng + (k-oldi)*scale)
+
+	leng = int(leng)
+
+	arr = numpy.zeros([leng/2,20,3],dtype=numpy.uint8)
+
+	for i in range(leng/2):
+		for j in range(20):
+			arr[i,j] = getGradCol(float(i)/scale,gradient)
+
+	Image.fromarray(arr).convert("RGB").save(name+".png")
+
 def remapGradient(gradient,newlower,newupper):
 	newgrad = {}
 
@@ -57,20 +77,44 @@ def remap(X,A,B,C,D):
 
 	return (float(X)-A)/(B-A) * (float(D)-C) + float(C)
 
+
+
+#colors = {
+#			'default' : 
+#			{
+#		  		4:(0,0,0),
+#		  		3:(128,255,20),
+#		  		2:(64,255,128),
+#		  		1:(255,64,255),
+#		  		0:(182,64,200)
+#		  	}
+#		 }
+
 colors = {
 			'default' : 
 			{
 		  		0:(0,0,0),
-		  		5:(128,255,20),
-		  		10:(64,255,128),
-		  		15:(0,128,255),
-		  		20:(182,64,200)
+		  		5:(128,64,128),
+		  		30:(64,128,64),
+		  		75:(30,0,200)
 		  	}
 		 }
 
 def getGradCol(number,colors):	
-	start = min(colors.keys())
-	end = max(colors.keys())
+	start = -999999999999999
+	end = 999999999999999
+	for found in colors.keys():
+		if found <= number:
+			if found > start:
+				start = found
+		else:
+			if found < end:
+				end = found
+
+	if start == -999999999999999:
+		start = 0
+	if end == 999999999999999:
+		end = 0
 
 	dist = end-start
 	pctage = remap(number,start,end,0,1)
