@@ -60,16 +60,8 @@ def gen(position,zoom,dimensions,scale=1,squaresize=50,processes=4,silent=False,
 	position = (int(position.x),int(position.y))
 
 	startime = time.time()
-
-	grad = {	0:(0,0,0,255), #Color data
-				iterations:(255,255,255,255),
-				99999999999:(0,0,0,255)}
 	
-	result = numpy.zeros((dimensions[0],dimensions[1],3),dtype=numpy.uint8)
-	
-	lookup = []
-	for i in range(0,255):
-		lookup.append(utils.getGradCol(i,grad)) #precache gradient values in order to avoid repetitive function calls
+	result = numpy.zeros((dimensions[0],dimensions[1]))
 
 	num_completed = {'done':0,'total':0} #This hack is nessecary because python 2 doesn't have the nonlocal keyword, so callback() couldn't modify num_completed if it were just an int.
 						#Apparently, single element arrays work as a replacement...
@@ -93,9 +85,7 @@ def gen(position,zoom,dimensions,scale=1,squaresize=50,processes=4,silent=False,
 			for x in range(pos[0],size[0]+pos[0]):
 				for y in range(pos[1],size[1]+pos[1]):
 					clamped = min(int(subgrid[x-pos[0],y-pos[1]]),100)
-					result[x,y,0] = lookup[clamped][0] #R
-					result[x,y,1] = lookup[clamped][1] #G
-					result[x,y,2] = lookup[clamped][2] #B
+					result[y,x] = clamped
 		except Exception as e:
 			if not silent:
 				print("Error:::::: "+str(e))

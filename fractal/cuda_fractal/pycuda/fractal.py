@@ -72,8 +72,9 @@ def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1), report=
 	result = numpy.zeros(dimensions,dtype=numpy.int32)
 
 	#Center position
-	position = Vector(position[0]*zoom,position[1]*zoom)
-	position = position - (Vector(result.shape[0],result.shape[1])/2)
+	#position = Vector(position[0]*zoom,position[1]*zoom)
+	position = Vector(position[0],position[1])
+	position = position - (Vector(dimensions[0],dimensions[1])/2)
 	position = numpy.array([int(position.x),int(position.y)]).astype(numpy.float32)
 
 	#For progress reporting:
