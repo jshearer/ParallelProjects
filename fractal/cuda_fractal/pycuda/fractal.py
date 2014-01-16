@@ -56,7 +56,6 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],float *zoo
 		}
 	}
 }
-
 """).get_function("gen")
 print("Compiled and got function gen")
 
@@ -124,13 +123,17 @@ def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1), report=
 	result[result.shape[0]/2,result.shape[1]/2]=iterations+1 #mark center of image
 	return result
 
-def SaveToPng(result,name):
-	print("Resizing result to be in range 0-255")
+def SaveToPng(result,name,silent=False):
+	if not silent: 
+		print("Resizing result to be in range 0-255")
 	result = (result.astype(numpy.float32)*(255.0/result.max())).astype(numpy.uint8)
-	print("Done resizing. Now generating image array.")
+	if not silent:
+		print("Done resizing. Now generating image array.")
 
 	result = result.reshape((result.shape[1],result.shape[0]))
-	print("Done generating image array. Writing image file.")
+	if not silent:
+		print("Done generating image array. Writing image file.")
 
 	Image.fromstring("L",(result.shape[1],result.shape[0]),result.tostring()).save(name+".png")
-	print("Image file written.")
+	if not silent:
+		print("Image file written.")
