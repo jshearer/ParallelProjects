@@ -45,7 +45,7 @@ def genChunk(position,size,zoom,iterations):
 #scale is a number that allows you to reduce the zoom and dimensions simultaneously 
 #in order to render a lower-res version of the same fractal
 
-def gen(position,zoom,dimensions,name,scale=1,squaresize=50,processes=4,silent=False, iterations=100):
+def gen(position,zoom,dimensions,scale=1,squaresize=50,processes=4,silent=False, iterations=100):
 	scale = 1.0/scale
 	procPool = Pool(processes=processes)
 
@@ -62,9 +62,8 @@ def gen(position,zoom,dimensions,name,scale=1,squaresize=50,processes=4,silent=F
 	startime = time.time()
 
 	grad = {	0:(0,0,0,255), #Color data
-				50:(255,100,255,255),
-				100:(255,100,200,255),
-				99999999:(255,255,255,255)}
+				iterations:(255,255,255,255),
+				99999999999:(0,0,0,255)}
 	
 	result = numpy.zeros((dimensions[0],dimensions[1],3),dtype=numpy.uint8)
 	
@@ -109,55 +108,57 @@ def gen(position,zoom,dimensions,name,scale=1,squaresize=50,processes=4,silent=F
 
 	procPool.close()
 	procPool.join()
+	return result
 
+def savepng(result,name,silent=False):
 	result = numpy.rot90(result)
 
-	Image.fromarray(result,"RGB").save(name)
+	Image.fromarray(result,"RGB").save(name+".png")
 
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description="A program to generate a fractal image. \nIn the case of 2-argument flags (such as --position), the arguments should be space-seperated. As in: --position 10 10", epilog='''Example usage:
+		./fractal.py -p 0 0 -z 50 -d 200 200 -- This will render a 200x200 image, with the fractal centered, and zoomed to 50.
 
-parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description="A program to generate a fractal image. \nIn the case of 2-argument flags (such as --position), the arguments should be space-seperated. As in: --position 10 10", epilog='''Example usage:
-	./fractal.py -p 0 0 -z 50 -d 200 200 -- This will render a 200x200 image, with the fractal centered, and zoomed to 50.
+		./fractal.py -p 100 0  -d 200 200 -z 50 -s 2 -- This will render a 200x200 image, zoomed to 50, and then scaled up 2x. 
+		Without the -m argument this effectively means it will zoom in on the center of the image 2x.
 
-	./fractal.py -p 100 0  -d 200 200 -z 50 -s 2 -- This will render a 200x200 image, zoomed to 50, and then scaled up 2x. 
-	Without the -m argument this effectively means it will zoom in on the center of the image 2x.
+		If you have a case such as this: 
+		./fractal_2.py -p 0 -29.65 -d 400 1500 -z 20 -s 230 fractal.png
+		And you want to render it at 2x resolution, you can't simply add \'-s 2 -m\' because you already have scale defined and by adding -m, 
+		you would be rendering it at 230x resolution.
+		So this is where the --calculate option is useful. This will calculate the modied position and zoom arguments, 
+		and print out a command that will output the same as your current setup, without the scale argument like so:
+		./fractal_2.py -p 0 -6819 -d 400 1500 -z 4600.0
+		You can then add the scale and -m arguments as you like to scale your render by whatever you want.''', prog="fractal")
+	parser.add_argument('--position','-p', metavar="pos", nargs=2, type=float, required=True, help="The offset of the rendered fractal. If set to 0 0, the fractal will be centered in the output image.")
+	parser.add_argument('--dimensions','-d', metavar="dim", nargs=2, type=int, required=True, help="The rendered image dimensions, in pixels. This may be modified by the use of the scale argument.")
+	parser.add_argument('--zoom','-z', type=float, required=True, help="The zoom of the fractal. This may be modified by the scale argument.")
+	parser.add_argument('--scale','-s', type=float, default=1, help="The scale multiplier. 1=default, use provided position and zoom. 2=2x zoom and position. This can be used to make a thumbnail image before running the full render, to see if your coordinates are correct.\n")
+	parser.add_argument('--processes','-procs', type=int, default=4, help="The number of processes to use for multi-process rendering. This is usually the number of CPU cores you have. Defaults to 4")
+	parser.add_argument('--iterations','-i', dest="iters", default=50, type=int, help="The maximum number of iterations the generator will go through, per pixel. The higher this is, the more accurate the fractal will be, and the slower the generation will be. It will be especially slow in places where the pixel is inside the shape, in which case the loop would go on for ever without a limit.")
+	parser.add_argument('--calculate', action="store_true", dest="calc", help="If this flag is set, no fractal will be rendered. Instead, the parameters will be outputed to stdout, calculated such that they can be applied with scale at 1. ")
+	parser.add_argument('--blocksize', dest="bsize", type=int, default=50, help="Set the block generation size. Default 50.")
+	parser.add_argument('name', help="The name of the output file. This can have any image extension supported by PIL.")
+	args = vars(parser.parse_args())
 
-	If you have a case such as this: 
-	./fractal_2.py -p 0 -29.65 -d 400 1500 -z 20 -s 230 fractal.png
-	And you want to render it at 2x resolution, you can't simply add \'-s 2 -m\' because you already have scale defined and by adding -m, 
-	you would be rendering it at 230x resolution.
-	So this is where the --calculate option is useful. This will calculate the modied position and zoom arguments, 
-	and print out a command that will output the same as your current setup, without the scale argument like so:
-	./fractal_2.py -p 0 -6819 -d 400 1500 -z 4600.0
-	You can then add the scale and -m arguments as you like to scale your render by whatever you want.''', prog="fractal")
-parser.add_argument('--position','-p', metavar="pos", nargs=2, type=float, required=True, help="The offset of the rendered fractal. If set to 0 0, the fractal will be centered in the output image.")
-parser.add_argument('--dimensions','-d', metavar="dim", nargs=2, type=int, required=True, help="The rendered image dimensions, in pixels. This may be modified by the use of the scale argument.")
-parser.add_argument('--zoom','-z', type=float, required=True, help="The zoom of the fractal. This may be modified by the scale argument.")
-parser.add_argument('--scale','-s', type=float, default=1, help="The scale multiplier. 1=default, use provided position and zoom. 2=2x zoom and position. This can be used to make a thumbnail image before running the full render, to see if your coordinates are correct.\n")
-parser.add_argument('--processes','-procs', type=int, default=4, help="The number of processes to use for multi-process rendering. This is usually the number of CPU cores you have. Defaults to 4")
-parser.add_argument('--iterations','-i', dest="iters", default=50, type=int, help="The maximum number of iterations the generator will go through, per pixel. The higher this is, the more accurate the fractal will be, and the slower the generation will be. It will be especially slow in places where the pixel is inside the shape, in which case the loop would go on for ever without a limit.")
-parser.add_argument('--calculate', action="store_true", dest="calc", help="If this flag is set, no fractal will be rendered. Instead, the parameters will be outputed to stdout, calculated such that they can be applied with scale at 1. ")
-parser.add_argument('--blocksize', dest="bsize", type=int, default=50, help="Set the block generation size. Default 50.")
-parser.add_argument('name', help="The name of the output file. This can have any image extension supported by PIL.")
-args = vars(parser.parse_args())
+	if args['calc']:
+		position = args['position']
+		zoom = args['zoom']
+		scale = 1.0/args['scale']
+		dimensions = args['dimensions']
+		
+		dimensions.reverse()
+		position.reverse()
+		
+		zoom = zoom/scale
+		dimensions = (int(dimensions[0]/scale),int(dimensions[1]/scale))
 
-if args['calc']:
-	position = args['position']
-	zoom = args['zoom']
-	scale = 1.0/args['scale']
-	dimensions = args['dimensions']
-	
-	dimensions.reverse()
-	position.reverse()
-	
-	zoom = zoom/scale
-	dimensions = (int(dimensions[0]/scale),int(dimensions[1]/scale))
-
-	position = Vector(position[0]/scale,position[1]/scale)
-	position = (int(position.x),int(position.y))
-	print("./fractal.py -p "+str(position[1])+" "+str(position[0])+" -d "+str(dimensions[1])+" "+str(dimensions[0])+" -z "+str(zoom))
-else:
-	try:
-		gen(args['position'],args['zoom'],args['dimensions'],args['name'], processes=args['processes'], scale=args['scale'], iterations=args['iters'], squaresize=args['bsize'])
-	except Exception as exc:
-		os.system("setterm -cursor on")
-		traceback.print_exc(file=sys.stdout)
+		position = Vector(position[0]/scale,position[1]/scale)
+		position = (int(position.x),int(position.y))
+		print("./fractal.py -p "+str(position[1])+" "+str(position[0])+" -d "+str(dimensions[1])+" "+str(dimensions[0])+" -z "+str(zoom))
+	else:
+		try:
+			gen(args['position'],args['zoom'],args['dimensions'],args['name'], processes=args['processes'], scale=args['scale'], iterations=args['iters'], squaresize=args['bsize'])
+		except Exception as exc:
+			os.system("setterm -cursor on")
+			traceback.print_exc(file=sys.stdout)
