@@ -4,17 +4,17 @@ from cpu_fractal import fractal_2 as cpu_f
 from cuda_fractal.pycuda import fractal as cuda_f
 import render
 
-def callCPU(position, zoom, dimensions, name, iterations=100):
+def callCPU(position, zoom, dimensions, name, iterations=100,scale=1):
 	start = time.time()
-	result = cpu_f.gen(position,zoom,dimensions,iterations=iterations,silent=True)
+	result = cpu_f.gen(position,zoom,dimensions,iterations=iterations,silent=True,scale=scale)
 	elapsed = time.time()-start
 	render.SaveToPng(result,"cpu_"+name,render.colors['default'],silent=True)
 	return elapsed
 
 
-def callCUDA(position, zoom, dimensions, name, iterations=100):
+def callCUDA(position, zoom, dimensions, name, iterations=100,scale=1):
 	start = time.time()
-	result = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True)
+	result = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True,scale=scale)
 	elapsed = time.time()-start
 	render.SaveToPng(result,"cuda_"+name,render.colors['default'],silent=True)
 	return elapsed

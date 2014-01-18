@@ -34,6 +34,8 @@ def SaveToPng(result,name,gradient,silent=False):
 			#print str(colorArr[y,x])+", "+str((x,y))
 			x = x + 1
 		y = y + 1
+		pct = (float(y)/len(result))*50
+		print "\r["+("#"*int(pct))+(" "*(50-int(pct)))+"] "+str(pct*2)+"% ("+str(y)+"/"+str(len(result))+")",
 		x = 0
 
 	#colors!
@@ -97,6 +99,13 @@ colors = {
 		  		5:(128,64,128),
 		  		30:(64,128,64),
 		  		75:(30,0,200)
+		  	},
+		  	'reds' :
+		  	{
+		  		0:(0,0,0),
+		  		5:(255,128,10),
+		  		30:(200,10,180),
+		  		75:(75,0,200)
 		  	}
 		 }
 
