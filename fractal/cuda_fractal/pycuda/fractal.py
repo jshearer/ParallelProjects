@@ -64,7 +64,12 @@ def In(thing):
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
 
-def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1), report=False, silent=False):
+def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(20,20,1), report=False, silent=False):
+
+	zoom = zoom * scale
+	dimensions = [dimensions[0]*scale,dimensions[1]*scale]
+	position = [position[0]*scale*zoom,position[1]*scale*zoom]
+
 	chunkSize = numpy.array([dimensions[0]/block[0],dimensions[1]/block[1]],dtype=numpy.int32)
 	zoom = numpy.float32(zoom)
 	iterations = numpy.int32(iterations)
@@ -123,18 +128,3 @@ def GenerateFractal(dimensions,position,zoom,iterations,block=(20,20,1), report=
 		
 	result[result.shape[0]/2,result.shape[1]/2]=iterations+1 #mark center of image
 	return result
-
-def SaveToPng(result,name,silent=False):
-	if not silent: 
-		print("Resizing result to be in range 0-255")
-	result = (result.astype(numpy.float32)*(255.0/result.max())).astype(numpy.uint8)
-	if not silent:
-		print("Done resizing. Now generating image array.")
-
-	result = result.reshape((result.shape[1],result.shape[0]))
-	if not silent:
-		print("Done generating image array. Writing image file.")
-
-	Image.fromstring("L",(result.shape[1],result.shape[0]),result.tostring()).save(name+".png")
-	if not silent:
-		print("Image file written.")
