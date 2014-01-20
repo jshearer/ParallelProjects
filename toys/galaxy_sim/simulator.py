@@ -3,56 +3,79 @@ import pycuda.autoinit
 from pycuda.compiler import SourceModule
 
 CUDASimulate = SourceModule("""
-#define pos_x stars[star_id*7]
-#define pos_y stars[(star_id*7)+1]
-#define pos_z stars[(star_id*7)+2]
-#define vel_x stars[(star_id*7)+3]
-#define vel_y stars[(star_id*7)+4]
-#define vel_z stars[(star_id*7)+5]
-#define mass stars[(star_id*7)+6]
+#DEFINE .x [0]
+#DEFINE .y [1]
+#DEFINE .z [2]
+
+__device__ float* vec3fCreate(float x, float y, float z)
+{
+	static float arr[3];
+	arr.x = x;
+	arr.y = y;
+	arr.z = z;
+	return arr;
+}
+
+__device__ float* vec3fZeros()
+{
+	return vec3fCreate(0,0,0);
+}
+
+__device__ void vec3fAdd(float* vec1, float* vec2, float* res)
+{
+	res.x = vec1.x + vec2.x;
+	res.y = vec1.y + vec2.y;
+	res.z = vec1.z + vec2.z;
+}
+
+__device__ void vec3fSub(float* vec1, float* vec2, float* res)
+{
+	res.x = vec1.x - vec2.x;
+	res.y = vec1.y - vec2.y;
+	res.z = vec1.z - vec2.z;
+}
+
+__device__ void vec3fMul(float* vec1, float* vec2, float* res)
+{
+	res.x = vec1.x * vec2.x;
+	res.y = vec1.y * vec2.y;
+	res.z = vec1.z * vec2.z;
+}
+
+__device__ void vec3fDiv(float* vec1, float* vec2, float* res)
+{
+	res.x = vec1.x / vec2.x;
+	res.y = vec1.y / vec2.y;
+	res.z = vec1.z / vec2.z;
+}
+
+__device__ float vec3fLen(float* vec)
+{
+	return sqrtf(powf(vec.x,2)+
+				 powf(vec.y,2)+
+				 powf(vec.z,2));
+}
+
+__device__ float vec3fDistance(float* vec1, float* vec2)
+{
+	float subt = 0;
+	vec3fSub(vec1, vec2, subt);
+	return vec3fLen(subt);
+}
+
+__device__ void vec3fNormalize(float* vec)
+{
+	float len = vec3fLen(vec);
+	float* div = vec3fCreate(len,len,len);
+	vec3fDiv(vec,div,vec);
+	free(len);
+	free(div);
+}
 
 __global__ void sim(float* stars, int numstars, int stride)
 {	
-	//A star is every 7 floats. 
-	//stars[id+0]: pos.x
-	//stars[id+1]: pos.y
-	//stars[id+2]: pos.z
-	//stars[id+3]: vel.x
-	//stars[id+4]: vel.y
-	//stars[id+5]: vel.z
-	//stars[id+6]: mass
-	//float posx, posy, posz, velx, vely, velz, accx, accy, accz, mass;
-
 	for(int star_id = blockIdx.x; star_id<numstars; star_id += (stride){
 
-		posx = pos_x;
-		posy = pos_y;
-		posz = pos_z;
-		velx = vel_x;
-		vely = vel_y;
-		velz = vel_z;
-
-		//This way, every thread is operating on the same, old set of data instead of some operations changing the data
-		//therefore making some threads work on partially new data, which would eventually cause instability
-		thread_sync();
-
-		//Actually calculate acceleration, new position, velocity, and store all the data. Make sure to use the
-		//local variables (those without the underscore) for the calculating, in order to not contaminate with new data.
-		
-		//Calculate acceleration
-		accx = 0;
-		accy = 0;
-		accz = 1;
-
-		//Calculate velocity
-		vel_x = vel_x + accx;
-		vel_y = vel_y + accy;
-		vel_z = vel_z + accz;
-
-		//Calculate position
-		pos_x = pos_x + vel_x;
-		pos_y = pos_y + vel_y;
-		pos_z = pos_z + vel_z;
 	}
 
 	//Make sure every thread is done calculating before going on to the next timestep.

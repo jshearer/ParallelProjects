@@ -20,7 +20,7 @@ step = some timestep value, probably less than 1.
 do:
 	NewVelocity = OldVelocity
 	for each particle in list of particles excluding this:
-		NewVelocity += (this.position-that.position).unit() * force calculation * step
+		NewVelocity += (this.position-that.position).normalize() * force calculation * step
 
 	sync threads, so that no thread updates its information in the array before all threads are done calculating
 
@@ -35,8 +35,8 @@ function to calculate force applied by that to this:
 
 Nessecary helper functions related to vectors:
 
-Add
-Subtract
-Multiply
-Unit
-Length
+- Add
+- Subtract
+- Multiply
+- Normalize
+- Length
