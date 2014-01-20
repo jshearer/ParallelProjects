@@ -1,0 +1,42 @@
+The particle information will be represented by an array of floats. 
+The information will be structured as follows:
+
+Index = Particle's index in the array.
+	
+	* Array[Index]: stores the x component of the particle's position
+	* Array[Index + 1]: stores the y component of the particle's position
+	* Array[Index + 2]: stores the Z component of the particle's position
+
+	* Array[Index + 3]: stores the x component of the particle's velocity
+	* Array[Index + 4]: stores the y component of the particle's velocity
+	* Array[Index + 5]: stores the z component of the particle's velocity
+
+	* Array[Index + 6]: stores the particle's mass
+
+Cuda-C function psudocode;
+
+step = some timestep value, probably less than 1.
+
+do:
+	NewVelocity = OldVelocity
+	for each particle in list of particles excluding this:
+		NewVelocity += (this.position-that.position).unit() * force calculation * step
+
+	sync threads, so that no thread updates its information in the array before all threads are done calculating
+
+	Store NewVelocity in Array
+	Store OldPosition + NewVelocity = NewPosition in Array
+while Run is True
+
+function to calculate force applied by that to this:
+	
+	F = G * (this.mass*that.mass)/
+			(abs((this.position-that.position).length()))
+
+Nessecary helper functions related to vectors:
+
+Add
+Subtract
+Multiply
+Unit
+Length
