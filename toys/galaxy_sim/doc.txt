@@ -31,7 +31,7 @@ while Run is True
 function to calculate force applied by that to this:
 	
 	F = G * (this.mass*that.mass)/
-			(abs((this.position-that.position).length()))
+			(abs((this.position-that.position).length())^2)
 
 Nessecary helper functions related to vectors:
 

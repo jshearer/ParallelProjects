@@ -1,10 +1,3 @@
-import pycuda.driver as cuda
-import pycuda.autoinit
-from pycuda.compiler import SourceModule
-import sys
-import os
-
-KernelCode = """
 #include "vector.cuh"
 #define getMass(id) stars[id+6]
 #define getPosition(star_id) vec3fCreate(stars[star_id],stars[star_id+1],stars[star_id+2])
@@ -75,14 +68,3 @@ __global__ void sim(float* stars, int numstars, int stride, float timestep)
 	//Make sure every thread is done calculating before going on to the next timestep.
 	thread_sync();
 }
-"""
-
-SimKernel = SourceModule(KernelCode,include_dirs=[os.path.abspath(os.path.dirname(sys.argv[0]))])
-SimFunc = SimKernel.get_function("sim")
-
-print("Compiled and got function gen")
-
-def In(thing):
-	thing_pointer = cuda.mem_alloc(thing.nbytes)
-	cuda.memcpy_htod(thing_pointer, thing)
-	return thing_pointer
