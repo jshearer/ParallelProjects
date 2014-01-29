@@ -5,76 +5,98 @@ import sys
 import os
 
 KernelCode = """
-#include "vector.cuh"
 #define getMass(id) stars[id+6]
-#define getPosition(star_id) vec3fCreate(stars[star_id],stars[star_id+1],stars[star_id+2])
-#define getVelocity(star_id) vec3fCreate(stars[star_id+3],stars[star_id+4],stars[star_id+5])
 
-__global__ void sim(float* stars, int numstars, int stride, float timestep)
+__global__ void sim(float* stars, int numstars, int stride, float timestep, int* stars_complete, int steps)
 {
-	float* NewVelocity, NewPosition;
-	float* stepVector = vec3fCreate(timestep,timestep,timestep);
 	float mass,len,force;
-	for(int star_id = blockIdx.x; star_id<numstars; star_id += stride*7){
-		NewVelocity = getVelocity(star_id);
+	int this_id, that_id;
 
-		for(int that_id = 0; that_id<numstars; that_id+=7)
-		{
-			if(that_id != star_id)
+	float ThisPos_x,ThisPos_y,ThisPos_z;
+	float NewVelocity_x,NewVelocity_y,NewVelocity_z;
+	float dir_x,dir_y,dir_z;
+	int step;
+	for(step = 0; step<steps; step++)
+	{
+		for(this_id = blockIdx.x; this_id<numstars; this_id += stride*7){
+			NewVelocity_x = stars[this_id+3];
+			NewVelocity_y = stars[this_id+4];
+			NewVelocity_z = stars[this_id+5];
+
+			ThisPos_x = stars[this_id];
+			ThisPos_y = stars[this_id+1];
+			ThisPos_z = stars[this_id+2];
+
+			for(that_id = 0; that_id<numstars; that_id+=7)
 			{
-				//F = G*((this.mass*that.mass)/
-				//			distance^2)
+				if(that_id != this_id)
+				{
+					//F = G*((this.mass*that.mass)/
+					//			distance^2)
 
-				float* thisPosition = getPosition(star_id);
-				float* thatPosition = getPosition(that_id);
-				float* thisMinusThat = vec3fZeros();
-				vec3fSub(thisPosition,thatPosition,thisMinusThat);
+					//subtract this.pos-that.pos
 
-				//Calculate force magnitude
-				mass = getMass(star_id)*getMass(that_id);
-				len = vec3fLen(thisMinusThat);
-				force = mass/powf(len,2);
-				float* forceVec = vec3fCreate(force,force,force);
 
-				vec3fNormalize(thisMinusThat); //Calculate direction of influence
-				vec3fMul(thisMinusThat,forceVec,thisMinusThat); //multiply by force magnitude
-				vec3fMul(thisMinusThat,stepVector,thisMinusThat); // *delta-t
+					dir_x = ThisPos_x-stars[that_id];
+					dir_y = ThisPos_y-stars[that_id+1];
+					dir_z = ThisPos_z-stars[that_id+2];
 
-				vec3fAdd(NewVelocity,thisMinusThat,NewVelocity); //Incorporate the calculated force into the new velocity
+					//Calculate force magnitude
+					mass = getMass(this_id)*getMass(that_id);
+					len = sqrtf(
+								powf(dir_x,2)+
+								powf(dir_y,2)+
+								powf(dir_z,2));
 
-				free(*thisPosition);
-				free(*thatPosition);
-				free(*forceVec);
-				free(*thisMinusThat);
+					force = mass/powf(len,2);
+
+					//vec3fNormalize(thisMinusThat); //Calculate direction of influence
+					dir_x = dir_x/len;
+					dir_y = dir_y/len;
+					dir_z = dir_z/len;
+
+
+					//vec3fMul(thisMinusThat,forceVec,thisMinusThat); //multiply by force magnitude
+					dir_x = dir_x * force;
+					dir_y = dir_y * force;
+					dir_z = dir_z * force;
+
+					//vec3fMul(thisMinusThat,stepVector,thisMinusThat); // *delta-t
+					dir_x = dir_x * timestep;
+					dir_y = dir_y * timestep;
+					dir_z = dir_z* timestep;
+
+					//vec3fAdd(NewVelocity,thisMinusThat,NewVelocity); //Incorporate the calculated force into the new velocity
+
+					NewVelocity_x = NewVelocity_x + dir_x;
+					NewVelocity_y = NewVelocity_y + dir_y;
+					NewVelocity_z = NewVelocity_z + dir_z;
+				}
+
+				//store NewVelocity
+				stars[this_id+3] = NewVelocity_x;	
+				stars[this_id+4] = NewVelocity_y;
+				stars[this_id+5] = NewVelocity_z;
+
+				//store NewPosition
+				stars[this_id] = stars[this_id] + NewVelocity_x;
+				stars[this_id+1] = stars[this_id+1] + NewVelocity_y;
+				stars[this_id+2] = stars[this_id+2] + NewVelocity_z;
 			}
 
-			free(*NewVelocity);
+			//I would like to wait until *all* blocks have reached this point, but that's not possible in CUDA. 
+			//Must find a better way. Currenly with no synchronization scheme in place, 
+			//I would expect to see a slow but steady declie in accuracy 
+			//as a certain percentage of blocks finish looping sooner than others, thus getting slightly ahead. 
+			//Though possibly they will then get slightly behind, thus canceling everything out. 
+			//Accuracey wise, this is bad. Performance wise, this is good.
 		}
+		(*stars_complete)++;
+		while((*stars_complete)<numstars){
 
-		//I would like to wait until *all* blocks have reached this point, but that's not possible in CUDA. Must find a better way. Currenly with no synchronization scheme in place, I would expect to see a slow but steady declie in accuracy as a certain percentage of blocks finish looping sooner than others, thus getting slightly ahead. Though possibly they will then get slightly behind, thus canceling everything out. Accuracey wise, this is bad. Performance wise, this is good.
-
-		//store NewVelocity
-		stars[star_id+3] = NewVelocity[0];
-		stars[star_id+4] = NewVelocity[1];
-		stars[star_id+5] = NewVelocity[2];
-
-		NewPosition = getPosition(star_id);
-		vec3fAdd(NewPosition,NewVelocity,NewPosition);
-
-		//store NewPosition
-		stars[star_id] = NewPosition[0];
-		stars[star_id+1] = NewPosition[1];
-		stars[star_id+2] = NewPosition[2];
-
-		free(*NewPosition);
-		//free(NewVelocity); //Already free it in the loop for every particle
-
-		
+		}
 	}
-
-	//Make sure every thread is done calculating before going on to the next timestep.
-	thread_sync();
-}
+}}
 """
 
 SimKernel = SourceModule(KernelCode,include_dirs=[os.path.abspath(os.path.dirname(sys.argv[0]))])
