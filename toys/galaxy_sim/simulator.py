@@ -96,10 +96,10 @@ __global__ void sim(float* stars, int numstars, int stride, float timestep, int*
 
 		}
 	}
-}}
+}
 """
 
-SimKernel = SourceModule(KernelCode,include_dirs=[os.path.abspath(os.path.dirname(sys.argv[0]))])
+SimKernel = SourceModule(KernelCode)
 SimFunc = SimKernel.get_function("sim")
 
 print("Compiled and got function gen")
@@ -108,3 +108,5 @@ def In(thing):
 	thing_pointer = cuda.mem_alloc(thing.nbytes)
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
+
+
