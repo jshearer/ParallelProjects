@@ -21,10 +21,11 @@ from pycuda.compiler import SourceModule
 
 genChunk = SourceModule("""
 #include <cuComplex.h>
-__global__ void gen(int size[2],float position[2],int realBlockDim[2],float *zoom,int *iterations,int *result, int* progress)
+__global__ void gen(int size[2],float position[2],int realBlockDim[2],int realThreadCount[0],float *zoom,int *iterations,int *result, int* progress)
 {	
-	int startx = blockIdx.x*size[0];
-	int starty = blockIdx.y*size[1];
+	int startx = (blockIdx.x*size[0])+(((float)threadIdx.x/realThreadCount[0])*size[0]);
+	int starty = (blockIdx.y*size[1])+(((float)threadIdx.y/realThreadCount[1])*size[1]);
+	
 	float t_x, t_y;
 	int i, x, y;
 
@@ -32,8 +33,9 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],float *zoo
 	cuFloatComplex z_unchanging = cuFloatComplex();
 
 	float z_real, z_imag;
-	for(x = startx; x < size[0]+startx; x++){
-		for(y = starty; y < size[1]+starty; y++){
+
+	for(x = startx; x < (blockIdx.x*size[0])+((((float)(threadIdx.x+1))/realThreadCount[0])*size[0]); x++){
+		for(y = starty; y < (blockIdx.y*size[1])+((((float)(threadIdx.y+1))/realThreadCount[1])*size[1]); y++){
 			atomicAdd(progress,1);
 			t_x = (x+position[0])/(*zoom);
 			t_y = (y+position[1])/(*zoom);
@@ -64,7 +66,7 @@ def In(thing):
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
 
-def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(20,20,1), report=False, silent=False):
+def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),thread=(1,1,1), report=False, silent=False):
 
 	zoom = zoom * scale
 	dimensions = [dimensions[0]*scale,dimensions[1]*scale]
@@ -92,6 +94,7 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(20,20,1),
 	chunkS = In(chunkSize)
 	posit = In(position)
 	blockD = In(blockDim)
+	threadD = In(numpy.array([thread[0],thread[1]],dtype=numpy.int32))
 	zoo = In(zoom)
 	iters = In(iterations)
 	res = In(result)
@@ -100,10 +103,10 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(20,20,1),
 		print("Calling CUDA function. Starting timer. progress starting at: "+str(ppc[0,0]))
 	start_time = time.time()
 
-	genChunk(chunkS, posit, blockD, zoo, iters, res, ppc_ptr, block=(1,1,1), grid=block)
+	genChunk(chunkS, posit, blockD, threadD, zoo, iters, res, ppc_ptr, block=thread, grid=block)
 	
 	if report:
-		total = (dimensions[0]*dimensions[1])
+		total = (dimensions[0]*dimensions[1])*thread[0]*thread[1]
 		print "Reporting up to "+str(total)+", "+str(ppc[0,0])
 		while ppc[0,0] < ((dimensions[0]*dimensions[1])):
 			pct = (ppc[0,0]*100)/(total)
