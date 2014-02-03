@@ -25,7 +25,7 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],int realTh
 {	
 	int startx = (blockIdx.x*size[0])+(((float)threadIdx.x/realThreadCount[0])*size[0]);
 	int starty = (blockIdx.y*size[1])+(((float)threadIdx.y/realThreadCount[1])*size[1]);
-	
+
 	float t_x, t_y;
 	int i, x, y;
 
@@ -66,7 +66,7 @@ def In(thing):
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
 
-def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),thread=(1,1,1), report=False, silent=False):
+def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=False):
 
 	zoom = zoom * scale
 	dimensions = [dimensions[0]*scale,dimensions[1]*scale]
@@ -90,6 +90,13 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),
 	ppc_ptr = numpy.intp(ppc.base.get_device_pointer()) #pagelocked memory counter, device pointer to
 	#End progress reporting
 
+	if debug:
+		print "Chunk Size: "+str(chunkSize)
+		print "Position: "+str(position)
+		print "Block Dimensions: "+str(blockDim)
+		print "Thread Dimensions: "+str(thread)
+		print "Thread Size: "+str([chunkSize[0]/thread[0],chunkSize[1]/thread[1]])
+
 	#Copy parameters over to device
 	chunkS = In(chunkSize)
 	posit = In(position)
@@ -106,7 +113,7 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),
 	genChunk(chunkS, posit, blockD, threadD, zoo, iters, res, ppc_ptr, block=thread, grid=block)
 	
 	if report:
-		total = (dimensions[0]*dimensions[1])*thread[0]*thread[1]
+		total = (dimensions[0]*dimensions[1])
 		print "Reporting up to "+str(total)+", "+str(ppc[0,0])
 		while ppc[0,0] < ((dimensions[0]*dimensions[1])):
 			pct = (ppc[0,0]*100)/(total)
@@ -118,15 +125,14 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),
 
 	cuda.Context.synchronize()
 	if not silent:
-		print "Done. "+str(ppc[0,0])
+		end_time = time.time()
+		elapsed_time = end_time-start_time
+		print("Done with call. Took "+str(elapsed_time)+" seconds. Here's the repr'd arary:\n")
 
 	#Copy result back from device
 	cuda.memcpy_dtoh(result, res)
 
 	if not silent: 
-		end_time = time.time()
-		elapsed_time = end_time-start_time
-		print("Done with call. Took "+str(elapsed_time)+" seconds. Here's the repr'd arary:\n")
 		print(result)
 		
 	result[result.shape[0]/2,result.shape[1]/2]=iterations+1 #mark center of image
