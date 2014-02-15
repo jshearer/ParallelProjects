@@ -90,7 +90,7 @@ def makePlot():
 	times = cudaCollect([0,0],450/2.0,[400,400],bData,tData)
 	
 	x_coords = times.keys()
-	y_coords = times.values()
+	y_coords = [time[0] for time in times.values()]
 
 	print x_coords
 	print y_coords
