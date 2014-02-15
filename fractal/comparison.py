@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib as pltlib
 import time
 
 from cpu_fractal import fractal_2 as cpu_f
@@ -58,14 +59,14 @@ bData = {
 		0: #x
 			{
 				0: 1,
-				1: 5,
-				2: 1
+				1: 8,
+				2: 2
 			},
 		1: #y
 			{
 				0: 1,
-				1: 5,
-				2: 1
+				1: 8,
+				2: 2
 			}
 }
 
@@ -91,11 +92,22 @@ def makePlot():
 	
 	x_coords = [xy[0]*xy[1] for xy in times.keys()]
 	y_coords = [time[0] for time in times.values()]
-
+	colors = [xy[2]*xy[3] for xy in times.keys()]
+	
 	print x_coords
 	print y_coords
 
-	plt.plot(x_coords,y_coords,'ro')
+	#plt.plot(x_coords,y_coords,'ro')
+
+	fix, ax = plt.subplots()
+
+	ax.scatter(x_coords,y_coords,c=colors,s=10,cmap=pltlib.cm.Reds)
+
+	plt.ylabel("Time to compute (seconds)")
+	plt.xlabel("Number of CUDA cores")
+	plt.title("Fractal generation.")
+		#("+str(bData[0][0])+","+str(bData[0][1])+")-("+str(bData[1][0])+","+str(bData[1][1])+") cores, stride ("+str(bData[0][2])+","+str(bData[1][2])+")\n"
+		#"("+str(tData[0][0])+","+str(tData[0][1])+")-("+str(tData[1][0])+","+str(tData[1][1])+") threads, stride ("+str(tData[0][2])+","+str(tData[1][2])+")")
 	#plt.axis([0,len(x_coords),0,len(y_coords)])
 	plt.show()
 
