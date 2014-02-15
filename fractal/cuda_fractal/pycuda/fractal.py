@@ -125,8 +125,8 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),
 
 
 	cuda.Context.synchronize()
+	end_time = time.time()-start_time
 	if not silent:
-		end_time = time.time()
 		elapsed_time = end_time-start_time
 		print("Done with call. Took "+str(elapsed_time)+" seconds. Here's the repr'd arary:\n")
 
@@ -137,4 +137,4 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),
 		print(result)
 		
 	result[result.shape[0]/2,result.shape[1]/2]=iterations+1 #mark center of image
-	return result
+	return result,end_time

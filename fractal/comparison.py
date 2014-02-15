@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import matplotlib as pltlib
 import time
 
+import numpy as np
+
 from cpu_fractal import fractal_2 as cpu_f
 from cuda_fractal.pycuda import fractal as cuda_f
 import render
@@ -16,12 +18,10 @@ def callCPU(position, zoom, dimensions, name, iterations=100,scale=1,save=True):
 
 
 def callCUDA(position, zoom, dimensions, name, iterations=100,scale=1,save=True,block=(5,5,1),thread=(1,1,1)):
-	start = time.time()
-	result = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True,debug=False,scale=scale,block=block,thread=thread)
-	elapsed = time.time()-start
+	result,time = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True,debug=False,scale=scale,block=block,thread=thread)
 	if save:
 		render.SaveToPngThread(result,"cuda_"+name,render.colors['default'],silent=True)
-	return elapsed
+	return time
 
 def compareParams(position, zoom, dimensions, name, iterations=100,save=True):
 	print "Comparing paramaters for ("+str(name)+"): ( ("+str(position[0])+", "+str(position[1])+"), "+str(zoom)+", ("+str(dimensions[0])+", "+str(dimensions[1])+") )"
@@ -59,14 +59,14 @@ bData = {
 		0: #x
 			{
 				0: 1,
-				1: 8,
+				1: 90,
 				2: 2
 			},
 		1: #y
 			{
 				0: 1,
-				1: 8,
-				2: 2
+				1: 2,
+				2: 1
 			}
 }
 
@@ -88,20 +88,34 @@ tData = {
 #cudaCollect([0,0],450/2.0,[400,400],bData,tData)
 
 def makePlot():
-	times = cudaCollect([0,0],450/2.0,[400,400],bData,tData)
+	times = cudaCollect([0,0],450	,[1500,1500],bData,tData)
 	
 	x_coords = [xy[0]*xy[1] for xy in times.keys()]
 	y_coords = [time[0] for time in times.values()]
-	colors = [xy[2]*xy[3] for xy in times.keys()]
+	colors = [float(xy[2]*xy[3]) for xy in times.keys()]
+
+	colors_max = max(colors)
+	colors_min = min(colors)
+
+	colors = np.array(colors,dtype=np.float)
+
+	colors = colors - colors.min()
+	colors = colors / colors.max()
+
+	colors = np.log10(colors)
+
+	print colors_max
+
+	#colors = [(x,x,x) for x in colors]
+
+	print colors
 	
-	print x_coords
-	print y_coords
+	#print x_coords
+	#print y_coords
 
 	#plt.plot(x_coords,y_coords,'ro')
 
-	fix, ax = plt.subplots()
-
-	ax.scatter(x_coords,y_coords,c=colors,s=10,cmap=pltlib.cm.Reds)
+	plt.scatter(x_coords,y_coords,c=colors,marker="+")
 
 	plt.ylabel("Time to compute (seconds)")
 	plt.xlabel("Number of CUDA cores")
