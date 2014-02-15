@@ -33,9 +33,7 @@ def compareParams(position, zoom, dimensions, name, iterations=100,save=True):
 
 def cudaCollect(position,zoom,dimensions,blockData,threadData):
 	#First run, block checking only
-	blockTimes = {}
-	threadTimes = {}
-	#blockTimes[block] = time
+	times = {}
 
 	#[0] = start,
 	#[1] = end,
@@ -44,16 +42,15 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData):
 		for y in range(blockData[1][0],blockData[1][1],blockData[1][2]):
 
 			block = (x,y,1)
-			blockTimes[block] = callCUDA(position,zoom,dimensions,str(block),block=block,save=True)
-			print str(block)+": "+str(blockTimes[block])
-			threadTimes[block] = {}
+
 			for t_x in range(threadData[0][0],threadData[0][1],threadData[0][2]):
 				for t_y in range(threadData[1][0],threadData[1][1],threadData[1][2]):
 					
 					thread = (t_x,t_y,1)
-					threadTimes[block][thread] = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True)
-					print "\t"+str(block)+", "+str(thread)+": "+str(threadTimes[block][thread])
-	return [blockTimes,threadTimes]
+					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True)
+					times[x*y*t_x*t_y] = time
+					print "\t"+str(block)+", "+str(thread)+": "+str(time)
+	return times
 
 #Test:
 
@@ -76,7 +73,7 @@ tData = {
 		0: #x
 			{
 				0: 1,
-				1: 2,
+				1: 30,
 				2: 1
 			},
 		1: #y
@@ -90,20 +87,10 @@ tData = {
 #cudaCollect([0,0],450/2.0,[400,400],bData,tData)
 
 def makePlot():
-	dat = cudaCollect([0,0],450/2.0,[400,400],bData,tData)
-	blockTimes = dat[0]
-	threadTimes = dat[1]
-
-	print "Lol hi! "+str(threadTimes)
-
-	x_coords = [x[0]*x[1] for x in threadTimes[threadTimes.keys()[0]].keys()]
-	y_coords = [threadTimes[threadTimes.keys()[0]][y] for y in threadTimes[threadTimes.keys()[0]]]
-
-	for loop_x in xrange(1,len(threadTimes.keys())):
-		x_coords.extend([x[0]*x[1]*loop_x for x in threadTimes[threadTimes.keys()[loop_x]].keys()])
-
-	for loop_y in xrange(1,len(threadTimes.keys())):
-		y_coords.extend([threadTimes[threadTimes.keys()[loop_y]][y]*loop_y for y in threadTimes[threadTimes.keys()[loop_y]]])
+	times = cudaCollect([0,0],450/2.0,[400,400],bData,tData)
+	
+	x_coords = times.keys()
+	y_coords = times.values()
 
 	print x_coords
 	print y_coords
