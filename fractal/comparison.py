@@ -48,7 +48,7 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData):
 					
 					thread = (t_x,t_y,1)
 					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True)
-					times[x*y*t_x*t_y] = time
+					times[x*y] = (time,x,y,t_x,t_y)
 					print "\t"+str(block)+", "+str(thread)+": "+str(time)
 	return times
 
