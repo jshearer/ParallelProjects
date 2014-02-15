@@ -39,16 +39,16 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData):
 	#[0] = start,
 	#[1] = end,
 	#[2] = stride
-	for x in range(blockData[0][0],blockData[0][1],blockData[0][2]):
-		for y in range(blockData[1][0],blockData[1][1],blockData[1][2]):
+	for x in blockData[0]:
+		for y in blockData[1]:
 
 			block = (x,y,1)
 
-			for t_x in range(threadData[0][0],threadData[0][1],threadData[0][2]):
-				for t_y in range(threadData[1][0],threadData[1][1],threadData[1][2]):
+			for t_x in threadData[0]:
+				for t_y in threadData[1]:
 					
 					thread = (t_x,t_y,1)
-					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True)
+					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False)
 					times[(x,y,t_x,t_y)] = (time,x,y,t_x,t_y)
 					print "\t"+str(block)+", "+str(thread)+": "+str(time)
 	return times
@@ -57,38 +57,24 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData):
 
 bData = {
 		0: #x
-			{
-				0: 1,
-				1: 90,
-				2: 2
-			},
+			range(1,1500,10),
 		1: #y
-			{
-				0: 1,
-				1: 2,
-				2: 1
-			}
+			range(1,2,1)
 }
 
 tData = {
 		0: #x
-			{
-				0: 1,
-				1: 30,
-				2: 5
-			},
+			[1,2,3,4,5,8,9,10,20,40,80,150,200,400,600,800],
 		1: #y
-			{
-				0: 1,
-				1: 30,
-				2: 5
-			}
+			range(1,2,1)
 }
 
 #cudaCollect([0,0],450/2.0,[400,400],bData,tData)
 
 def makePlot():
-	times = cudaCollect([0,0],450	,[1500,1500],bData,tData)
+	dimensions = [6000,6000]
+	zoom = 450*5
+	times = cudaCollect([0,0],zoom,dimensions,bData,tData)
 	
 	x_coords = [xy[0]*xy[1] for xy in times.keys()]
 	y_coords = [time[0] for time in times.values()]
@@ -110,16 +96,16 @@ def makePlot():
 
 	print colors
 	
-	#print x_coords
-	#print y_coords
+	print x_coords
+	print y_coords
 
 	#plt.plot(x_coords,y_coords,'ro')
 
 	plt.scatter(x_coords,y_coords,c=colors,marker="+")
 
-	plt.ylabel("Time to compute (seconds)")
+	plt.ylabel("Time to compute (seconds,log10)")
 	plt.xlabel("Number of CUDA cores")
-	plt.title("Fractal generation.")
+	plt.title("Fractal generation write.\nDimensions: "+str(dimensions)+"\nZoom: "+str(zoom))
 		#("+str(bData[0][0])+","+str(bData[0][1])+")-("+str(bData[1][0])+","+str(bData[1][1])+") cores, stride ("+str(bData[0][2])+","+str(bData[1][2])+")\n"
 		#"("+str(tData[0][0])+","+str(tData[0][1])+")-("+str(tData[1][0])+","+str(tData[1][1])+") threads, stride ("+str(tData[0][2])+","+str(tData[1][2])+")")
 	#plt.axis([0,len(x_coords),0,len(y_coords)])
