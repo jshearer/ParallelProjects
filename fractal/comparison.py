@@ -76,32 +76,36 @@ def makePlot():
 	zoom = 450*5
 	times = cudaCollect([0,0],zoom,dimensions,bData,tData)
 	
-	x_coords = [xy[0]*xy[1] for xy in times.keys()]
-	y_coords = [time[0] for time in times.values()]
+	cores = [xy[0]*xy[1] for xy in times.keys()]
+	times = [time[0] for time in times.values()]
 	colors = [float(xy[2]*xy[3]) for xy in times.keys()]
 
 	colors_max = max(colors)
 	colors_min = min(colors)
-
+###############################################
 	colors = np.array(colors,dtype=np.float)
-
+	cores = np.array(cores,dtype=np.float)
+	times = np.array(times,dtype=np.float)
+###############################################
 	colors = colors - colors.min()
 	colors = colors / colors.max()
-
 	colors = np.log10(colors)
-
+###############################################
+	times = times / times.max()
+	times = np.log10(times)
+###############################################
 	print colors_max
 
 	#colors = [(x,x,x) for x in colors]
 
 	print colors
 	
-	print x_coords
-	print y_coords
+	print cores
+	print times
 
 	#plt.plot(x_coords,y_coords,'ro')
 
-	plt.scatter(x_coords,y_coords,c=colors,marker="+")
+	plt.scatter(cores,times,c=colors,marker="+")
 
 	plt.ylabel("Time to compute (seconds,log10)")
 	plt.xlabel("Number of CUDA cores")
