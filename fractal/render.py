@@ -2,6 +2,13 @@ import numpy
 import pdb
 from PIL import Image
 
+from multiprocessing import Pool
+
+pool = Pool(10)
+
+def SaveToPngThread(result,name,gradient,silent=False):
+	pool.apply_async(SaveToPng,[result,name,gradient,True])
+
 def SaveToPng(result,name,gradient,silent=False):
 	lookup = {}
 
@@ -35,7 +42,8 @@ def SaveToPng(result,name,gradient,silent=False):
 			x = x + 1
 		y = y + 1
 		pct = (float(y)/len(result))*50
-		print "\r["+("#"*int(pct))+(" "*(50-int(pct)))+"] "+str(pct*2)+"% ("+str(y)+"/"+str(len(result))+")",
+		if not silent:
+			print "\r["+("#"*int(pct))+(" "*(50-int(pct)))+"] "+str(pct*2)+"% ("+str(y)+"/"+str(len(result))+")",
 		x = 0
 
 	#colors!

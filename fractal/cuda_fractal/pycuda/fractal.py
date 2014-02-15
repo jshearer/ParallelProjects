@@ -36,7 +36,7 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],int realTh
 
 	for(x = startx; x < (blockIdx.x*size[0])+((((float)(threadIdx.x+1))/realThreadCount[0])*size[0]); x++){
 		for(y = starty; y < (blockIdx.y*size[1])+((((float)(threadIdx.y+1))/realThreadCount[1])*size[1]); y++){
-			atomicAdd(progress,1);
+			//atomicAdd(progress,1);
 			t_x = (x+position[0])/(*zoom);
 			t_y = (y+position[1])/(*zoom);
 
@@ -66,8 +66,9 @@ def In(thing):
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
 
-def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=False):
-
+def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=True):
+	#Force progress checking to False, otherwise it'll go on forever with reporting turned off in the kernel
+	report = False
 	zoom = zoom * scale
 	dimensions = [dimensions[0]*scale,dimensions[1]*scale]
 	position = [position[0]*scale*zoom,position[1]*scale*zoom]
