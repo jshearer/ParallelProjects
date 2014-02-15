@@ -48,7 +48,7 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData):
 					
 					thread = (t_x,t_y,1)
 					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True)
-					times[x*y] = (time,x,y,t_x,t_y)
+					times[(x,y,t_x,t_y)] = (time,x,y,t_x,t_y)
 					print "\t"+str(block)+", "+str(thread)+": "+str(time)
 	return times
 
@@ -58,13 +58,13 @@ bData = {
 		0: #x
 			{
 				0: 1,
-				1: 20,
+				1: 5,
 				2: 1
 			},
 		1: #y
 			{
 				0: 1,
-				1: 2,
+				1: 5,
 				2: 1
 			}
 }
@@ -74,13 +74,13 @@ tData = {
 			{
 				0: 1,
 				1: 30,
-				2: 1
+				2: 5
 			},
 		1: #y
 			{
 				0: 1,
-				1: 2,
-				2: 1
+				1: 30,
+				2: 5
 			}
 }
 
@@ -89,7 +89,7 @@ tData = {
 def makePlot():
 	times = cudaCollect([0,0],450/2.0,[400,400],bData,tData)
 	
-	x_coords = times.keys()
+	x_coords = [xy[0]*xy[1] for xy in times.keys()]
 	y_coords = [time[0] for time in times.values()]
 
 	print x_coords
