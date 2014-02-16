@@ -4,11 +4,6 @@ from PIL import Image
 
 from multiprocessing import Pool
 
-pool = Pool(10)
-
-def SaveToPngThread(result,name,gradient,silent=False):
-	pool.apply_async(SaveToPng,[result,name,gradient,True])
-
 def SaveToPng(result,name,gradient,silent=False):
 	lookup = {}
 
@@ -50,6 +45,9 @@ def SaveToPng(result,name,gradient,silent=False):
 	Image.fromarray(colorArr).convert("RGB").save(name+".png")
 	if not silent:
 		print("Image file written.")
+
+def SaveToPngThread(result,name,gradient,silent=False):
+	pool.apply_async(SaveToPng,[result,name,gradient,True])
 
 def renderGradient(gradient,name):
 	keys = sorted(gradient.keys())
@@ -143,3 +141,4 @@ def getGradCol(number,colors):
 					  lerp(colors[start][1],colors[end][1],pctage),
 					  lerp(colors[start][2],colors[end][2],pctage))
 	return endcol
+pool = Pool(20)

@@ -20,7 +20,7 @@ def callCPU(position, zoom, dimensions, name, iterations=100,scale=1,save=True):
 def callCUDA(position, zoom, dimensions, name, iterations=100,scale=1,save=True,block=(5,5,1),thread=(1,1,1)):
 	result,time = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True,debug=False,scale=scale,block=block,thread=thread)
 	if save:
-		render.SaveToPngThread(result,"cuda_"+name,render.colors['default'],silent=True)
+		render.SaveToPngThread(result,"cuda_"+name,render.colors['default'],silent=False)
 	return time
 
 def compareParams(position, zoom, dimensions, name, iterations=100,save=True):
@@ -48,7 +48,7 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData):
 				for t_y in threadData[1]:
 					
 					thread = (t_x,t_y,1)
-					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False)
+					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True)
 					times[(x,y,t_x,t_y)] = (time,x,y,t_x,t_y)
 					print "\t"+str(block)+", "+str(thread)+": "+str(time)
 	return times
@@ -57,28 +57,29 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData):
 
 bData = {
 		0: #x
-			range(1,1500,10),
+			range(1,160,1),
 		1: #y
-			range(1,2,1)
+			range(1,160,1)
 }
 
 tData = {
 		0: #x
-			[1,2,3,4,5,8,9,10,20,40,80,150,200,400,600,800],
+			#[1,2,4,8,16,32,64,128,256,512,1024],
+			range(1,100),
 		1: #y
 			range(1,2,1)
 }
 
 #cudaCollect([0,0],450/2.0,[400,400],bData,tData)
-
-def makePlot():
-	dimensions = [6000,6000]
-	zoom = 450*5
-	times = cudaCollect([0,0],zoom,dimensions,bData,tData)
 	
-	cores = [xy[0]*xy[1] for xy in times.keys()]
-	times = [time[0] for time in times.values()]
-	colors = [float(xy[2]*xy[3]) for xy in times.keys()]
+def makePlot():
+	dimensions = [2000,2000]
+	zoom = 450*2
+	recData = cudaCollect([0,0],zoom,dimensions,bData,tData)
+	
+	cores = [xy[0]*xy[1] for xy in recData.keys()]
+	times = [time[0] for time in recData.values()]
+	colors = [float(xy[2]*xy[3]) for xy in recData.keys()]
 
 	colors_max = max(colors)
 	colors_min = min(colors)
@@ -87,7 +88,6 @@ def makePlot():
 	cores = np.array(cores,dtype=np.float)
 	times = np.array(times,dtype=np.float)
 ###############################################
-	colors = colors - colors.min()
 	colors = colors / colors.max()
 	colors = np.log10(colors)
 ###############################################
@@ -97,9 +97,7 @@ def makePlot():
 	print colors_max
 
 	#colors = [(x,x,x) for x in colors]
-
 	print colors
-	
 	print cores
 	print times
 

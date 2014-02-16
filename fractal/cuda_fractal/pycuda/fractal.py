@@ -44,17 +44,7 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],int realTh
 			z.y = t_y;
 			z_unchanging.x = t_x;
 			z_unchanging.y = t_y; //optomize this with pointer magic?
-
-			for(i = 0; i<(*iterations) + 1; i++){
-				z = cuCmulf(z,z);
-				z = cuCaddf(z,z_unchanging); //z = z^2 + z_orig
-				z_real = cuCrealf(z);
-				z_imag = cuCimagf(z);
-				if((z_real*z_real + z_imag*z_imag)>4){
-					result[x+(y*size[0]*realBlockDim[0])] = i;
-					break;
-				}
-			}
+			//result[x+(y*size[0]*realBlockDim[0])] = result[x+(y*size[0]*realBlockDim[0])]+1;
 		}
 	}
 }
