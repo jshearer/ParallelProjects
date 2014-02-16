@@ -18,6 +18,7 @@ def callCPU(position, zoom, dimensions, name, iterations=100,scale=1,save=True):
 
 
 def callCUDA(position, zoom, dimensions, name, iterations=100,scale=1,save=True,block=(5,5,1),thread=(1,1,1)):
+	# http://docs.nvidia.com/cuda/parallel-thread-execution/index.html
 	result,time = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True,debug=False,scale=scale,block=block,thread=thread)
 	if save:
 		render.SaveToPngThread(result,"cuda_"+name,render.colors['default'],silent=False)
