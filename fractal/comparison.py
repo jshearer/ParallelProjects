@@ -37,15 +37,7 @@ def compareParams(position, zoom, dimensions, name, iterations=100,save=True):
 def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 	#First run, block checking only
 	times = {}
-
-	def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block):
-		thread = (t_x,t_y,1)
-		
-		time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True,mode=mode)
-		
-		times[(x,y,t_x,t_y)] = time
-		print "\t"+str(block)+", "+str(thread)+": "+str(time)
-
+	asyncObjs = []
 	#[0] = start,
 	#[1] = end,
 	#[2] = stride
@@ -56,10 +48,21 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 
 			for t_x in threadData[0]:
 				for t_y in threadData[1]:
-					pool.apply_async(cudaCollectThreadFunc,(x,y,t_x,t_y,position,zoom,dimensions,block)
+					asyncObjs.append(pool.apply_async(cudaCollectThreadFunc,(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times)))
+	[obj.get() for obj in asyncObjs]
 	pool.close()
 	pool.join()
 	return times
+
+def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times):
+	thread = (t_x,t_y,1)
+
+	print "Calculating "+str(block)+", "+str(thread)
+	
+	time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True,mode=mode)
+	
+	times[(x,y,t_x,t_y)] = time
+	print "\t"+str(block)+", "+str(thread)+": "+str(time)
 
 def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
 	recData = cudaCollect(position,zoom,dimensions,bData,tData,Pool(20),mode=mode)
