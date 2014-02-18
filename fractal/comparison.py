@@ -34,7 +34,7 @@ def compareParams(position, zoom, dimensions, name, iterations=100,save=True):
 	print "CPU ran in "+str(cpuTime)+"s"
 	print "CUDA ran in "+str(cudaTime)+"s"
 
-def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
+def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 	#First run, block checking only
 	times = {}
 
@@ -49,6 +49,8 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
 			for t_x in threadData[0]:
 				for t_y in threadData[1]:
 					pool.apply_async(cudaCollectThreadFunc,[x,y,t_x,t_y,position,zoom,dimensions,block,mode,times])
+	pool.close()
+	pool.join()
 	return times
 
 def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times):
@@ -59,10 +61,8 @@ def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times)
 	times[(x,y,t_x,t_y)] = time
 	print "\t"+str(block)+", "+str(thread)+": "+str(time)
 
-pool = Pool(20)
-
 def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
-	recData = cudaCollect(position,zoom,dimensions,bData,tData,mode=mode)
+	recData = cudaCollect(position,zoom,dimensions,bData,tData,Pool(20),mode=mode)
 	
 	cores = [xy[0]*xy[1] for xy in recData.keys()]
 	times = recData.values()
