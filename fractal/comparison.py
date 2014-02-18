@@ -8,6 +8,8 @@ from cpu_fractal import fractal_2 as cpu_f
 from cuda_fractal.pycuda import fractal as cuda_f
 import render
 
+from multiprocessing import Pool
+
 def callCPU(position, zoom, dimensions, name, iterations=100,scale=1,save=True):
 	start = time.time()
 	result = cpu_f.gen(position,zoom,dimensions,iterations=iterations,silent=True,scale=scale)
@@ -46,13 +48,19 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
 
 			for t_x in threadData[0]:
 				for t_y in threadData[1]:
-					
-					thread = (t_x,t_y,1)
-					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True,mode=mode)
-					times[(x,y,t_x,t_y)] = time
-					print "\t"+str(block)+", "+str(thread)+": "+str(time)
+					pool.apply_async(cudaCollectThreadFunc,[x,y,t_x,t_y,position,zoom,dimensions,block,mode,times])
 	return times
+
+def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times):
+	thread = (t_x,t_y,1)
 	
+	time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True,mode=mode)
+	
+	times[(x,y,t_x,t_y)] = time
+	print "\t"+str(block)+", "+str(thread)+": "+str(time)
+
+pool = Pool(20)
+
 def makePlot(dimensions,zoom,position,mode,directory,bdata,tdata):
 	recData = cudaCollect(position,zoom,dimensions,bData,tData,mode=mode)
 	
