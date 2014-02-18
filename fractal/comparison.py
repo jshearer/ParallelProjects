@@ -46,10 +46,11 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 
 			block = (x,y,1)
 
+			[obj.get() for obj in asyncObjs] #Block
+
 			for t_x in threadData[0]:
 				for t_y in threadData[1]:
 					asyncObjs.append(pool.apply_async(cudaCollectThreadFunc,(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times)))
-	[obj.get() for obj in asyncObjs]
 	pool.close()
 	pool.join()
 	return times
