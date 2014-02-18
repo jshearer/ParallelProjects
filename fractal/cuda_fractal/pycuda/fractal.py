@@ -21,8 +21,13 @@ from pycuda.compiler import SourceModule
 
 genChunk = SourceModule("""
 #include <cuComplex.h>
-__global__ void gen(int size[2],float position[2],int realBlockDim[2],int realThreadCount[0],float *zoom,int *iterations,int *result, int* progress)
-{	
+__global__ void gen(int size[2],float position[2],int realBlockDim[2],int realThreadCount[0],float *zoom,int *iterations,int *result, int* progress,int action)
+{
+	//actions: 0 = write
+	//	   1 = read+write
+	//         2 = none	
+	//	   3 = atomicAddTest
+
 	int startx = (blockIdx.x*size[0])+(((float)threadIdx.x/realThreadCount[0])*size[0]);
 	int starty = (blockIdx.y*size[1])+(((float)threadIdx.y/realThreadCount[1])*size[1]);
 
@@ -36,7 +41,10 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],int realTh
 
 	for(x = startx; x < (blockIdx.x*size[0])+((((float)(threadIdx.x+1))/realThreadCount[0])*size[0]); x++){
 		for(y = starty; y < (blockIdx.y*size[1])+((((float)(threadIdx.y+1))/realThreadCount[1])*size[1]); y++){
-			//atomicAdd(progress,1);
+			if(action==3)
+			{
+				atomicAdd(progress,1);
+			}
 			t_x = (x+position[0])/(*zoom);
 			t_y = (y+position[1])/(*zoom);
 
@@ -44,7 +52,23 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],int realTh
 			z.y = t_y;
 			z_unchanging.x = t_x;
 			z_unchanging.y = t_y; //optomize this with pointer magic?
-			//result[x+(y*size[0]*realBlockDim[0])] = result[x+(y*size[0]*realBlockDim[0])]+1;
+
+			for(i = 0; i<(*iterations) + 1; i++){
+				z = cuCmulf(z,z);
+				z = cuCaddf(z,z_unchanging); //z = z^2 + z_orig
+				z_real = cuCrealf(z);
+				z_imag = cuCimagf(z);
+				if((z_real*z_real + z_imag*z_imag)>4){
+					if(action==0||action==3)
+					{
+						result[x+(y*size[0]*realBlockDim[0])] = i;
+					} else if(action==1)
+					{
+						result[x+(y*size[0]*realBlockDim[0])] = result[x+(y*size[0]*realBlockDim[0])] + 1;
+					}//else if action==2, do nothing
+					break;
+				}
+			}
 		}
 	}
 }
@@ -56,7 +80,7 @@ def In(thing):
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
 
-def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=True):
+def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=True):
 	#Force progress checking to False, otherwise it'll go on forever with reporting turned off in the kernel
 	report = False
 	zoom = zoom * scale
@@ -96,12 +120,13 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,block=(15,15,1),
 	zoo = In(zoom)
 	iters = In(iterations)
 	res = In(result)
+	act = numpy.int32(action)
 
 	if not silent:
 		print("Calling CUDA function. Starting timer. progress starting at: "+str(ppc[0,0]))
 	start_time = time.time()
 
-	genChunk(chunkS, posit, blockD, threadD, zoo, iters, res, ppc_ptr, block=thread, grid=block)
+	genChunk(chunkS, posit, blockD, threadD, zoo, iters, res, ppc_ptr, act, block=thread, grid=block)
 	
 	if report:
 		total = (dimensions[0]*dimensions[1])
