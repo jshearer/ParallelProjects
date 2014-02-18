@@ -59,7 +59,7 @@ def makePlot(dimensions,zoom,position,mode,directory,bdata,tdata):
 	cores = [xy[0]*xy[1] for xy in recData.keys()]
 	times = recData.values()
 	threads = [float(xy[2]*xy[3]) for xy in recData.keys()]
-#test
+
 	threads_max = max(threads)
 	threads_min = min(threads)
 ###############################################
@@ -97,7 +97,7 @@ def runComparison():
 
 	bData = {
 			0: #x
-				[1,2,3,4,5,,6,7,8,9,10,15,20,25,30,35,40,45,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000],
+				[1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000],
 			1: #y
 				[1]
 	}
