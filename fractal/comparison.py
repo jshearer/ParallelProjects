@@ -38,6 +38,10 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 	#First run, block checking only
 	times = {}
 	asyncObjs = []
+
+	active_limit = 5
+	active = 0
+
 	#[0] = start,
 	#[1] = end,
 	#[2] = stride
@@ -46,11 +50,14 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 
 			block = (x,y,1)
 
-			[obj.get() for obj in asyncObjs] #Block
-
 			for t_x in threadData[0]:
 				for t_y in threadData[1]:
 					asyncObjs.append(pool.apply_async(cudaCollectThreadFunc,(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times)))
+					active = active + 1
+					if active >= active_limit:
+						[obj.get() for obj in asyncObjs] #Block
+	
+	[obj.get() for obj in asyncObjs] #Block
 	pool.close()
 	pool.join()
 	return times
