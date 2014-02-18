@@ -19,8 +19,8 @@ def callCPU(position, zoom, dimensions, name, iterations=100,scale=1,save=True):
 	return elapsed
 
 
-def callCUDA(position, zoom, dimensions, name, iterations=100,scale=1,save=True,block=(5,5,1),thread=(1,1,1),mode=0,func=cuda_f.genChunk):
-	result,time = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True,debug=False,action=mode,scale=scale,block=block,thread=thread,func = func)
+def callCUDA(position, zoom, dimensions, name, iterations=100,scale=1,save=True,block=(5,5,1),thread=(1,1,1),mode=0):
+	result,time = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True,debug=False,action=mode,scale=scale,block=block,thread=thread)
 	if save:
 		render.SaveToPngThread(result,"cuda_mode"+str(mode)+"-"+name,render.colors['default'],silent=False)
 	return time
@@ -52,7 +52,7 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 
 			for t_x in threadData[0]:
 				for t_y in threadData[1]:
-					asyncObjs.append(pool.apply_async(cudaCollectThreadFunc,(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times,cuda_f.genChunk)))
+					asyncObjs.append(pool.apply_async(cudaCollectThreadFunc,(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times)))
 					active = active + 1
 					if active >= active_limit:
 						[obj.get() for obj in asyncObjs] #Block
@@ -62,12 +62,15 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 	pool.join()
 	return times
 
-def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times,func):
+def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times):
+	import pycuda.driver as cuda
+	import pycuda.autoinit
+
 	thread = (t_x,t_y,1)
 
 	print "Calculating "+str(block)+", "+str(thread)
 	
-	time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True,mode=mode,func=func)
+	time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True,mode=mode)
 	
 	times[(x,y,t_x,t_y)] = time
 	print "\t"+str(block)+", "+str(thread)+": "+str(time)

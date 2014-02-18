@@ -76,7 +76,7 @@ def In(thing):
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
 
-def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=True,func = genChunk):
+def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=True):
 	#Force progress checking to False, otherwise it'll go on forever with reporting turned off in the kernel
 	report = False
 	zoom = zoom * scale
@@ -122,7 +122,7 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 		print("Calling CUDA function. Starting timer. progress starting at: "+str(ppc[0,0]))
 	start_time = time.time()
 
-	func(chunkS, posit, blockD, threadD, zoo, iters, res, ppc_ptr, act, block=thread, grid=block)
+	genChunk(chunkS, posit, blockD, threadD, zoo, iters, res, ppc_ptr, act, block=thread, grid=block)
 	
 	if report:
 		total = (dimensions[0]*dimensions[1])
