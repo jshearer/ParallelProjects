@@ -56,16 +56,12 @@ def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times)
 	
 	time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True,mode=mode)
 	
-<<<<<<< HEAD
 	times[(x,y,t_x,t_y)] = time
 	print "\t"+str(block)+", "+str(thread)+": "+str(time)
 
 pool = Pool(20)
 
-def makePlot(dimensions,zoom,position,mode,directory,bdata,tdata):
-=======
 def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
->>>>>>> db7cfc6410a97ddb354097b3e4d247280fb8ec3d
 	recData = cudaCollect(position,zoom,dimensions,bData,tData,mode=mode)
 	
 	cores = [xy[0]*xy[1] for xy in recData.keys()]
