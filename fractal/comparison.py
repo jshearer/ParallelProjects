@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Agg') #to use savefig without DISPLAY set
 import matplotlib.pyplot as plt
 import matplotlib as pltlib
 import time
@@ -50,7 +50,7 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
 				for t_y in threadData[1]:
 					
 					thread = (t_x,t_y,1)
-					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True,mode=mode)
+					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
 					times[(x,y,t_x,t_y)] = time
 					print "\t"+str(block)+", "+str(thread)+": "+str(time)
 	return times
@@ -73,7 +73,7 @@ def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
 	threads = np.log10(threads)
 ###############################################
 	times = times / times.max()
-	times = np.log10(times)
+	#times = np.log10(times)
 ###############################################
 	print threads_max
 
@@ -86,7 +86,7 @@ def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
 
 	plt.scatter(cores,times,c=threads,marker="+")
 
-	plt.ylabel("Time to compute \log_{10}(seconds)")
+	plt.ylabel("Time to compute (seconds)")
 	plt.xlabel("Number of CUDA cores")
 
 	title_identifier = {0:'write',1:'read and write',2:'raw compute'}[mode]
@@ -95,6 +95,7 @@ def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
 	
 	with open(directory+"mode_"+str(mode)+"--"+str(time.time())+".png",'w') as f:
 		plt.savefig(f)
+	plt.clf()
 
 def runComparison():
 
