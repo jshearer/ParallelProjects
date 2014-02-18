@@ -43,13 +43,8 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 		
 		time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True,mode=mode)
 		
+		times[(x,y,t_x,t_y)] = time
 		print "\t"+str(block)+", "+str(thread)+": "+str(time)
-
-		return (x,y,t_x,t_y,time)
-
-	def cudaCollectThreadCallback(result):
-		times[(result[0:4])] = result[4]
-	
 
 	#[0] = start,
 	#[1] = end,
@@ -61,7 +56,7 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 
 			for t_x in threadData[0]:
 				for t_y in threadData[1]:
-					pool.apply_async(cudaCollectThreadFunc,[x,y,t_x,t_y,position,zoom,dimensions,block],callback = cudaCollectThreadCallback)
+					pool.apply_async(cudaCollectThreadFunc,(x,y,t_x,t_y,position,zoom,dimensions,block)
 	pool.close()
 	pool.join()
 	return times
