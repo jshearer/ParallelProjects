@@ -68,6 +68,7 @@ def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times)
 	
 	device = cuda.Device(0)
 	context = device.make_context()
+	context.push()
 
 	thread = (t_x,t_y,1)
 
