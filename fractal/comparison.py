@@ -20,7 +20,7 @@ def callCPU(position, zoom, dimensions, name, iterations=100,scale=1,save=True):
 
 
 def callCUDA(position, zoom, dimensions, name, iterations=100,scale=1,save=True,block=(5,5,1),thread=(1,1,1),mode=0):
-	result,time = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True,debug=False,mode=mode,scale=scale,block=block,thread=thread)
+	result,time = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True,debug=False,action=mode,scale=scale,block=block,thread=thread)
 	if save:
 		render.SaveToPngThread(result,"cuda_mode"+str(mode)+"-"+name,render.colors['default'],silent=False)
 	return time
@@ -56,12 +56,16 @@ def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times)
 	
 	time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=True,mode=mode)
 	
+<<<<<<< HEAD
 	times[(x,y,t_x,t_y)] = time
 	print "\t"+str(block)+", "+str(thread)+": "+str(time)
 
 pool = Pool(20)
 
 def makePlot(dimensions,zoom,position,mode,directory,bdata,tdata):
+=======
+def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
+>>>>>>> db7cfc6410a97ddb354097b3e4d247280fb8ec3d
 	recData = cudaCollect(position,zoom,dimensions,bData,tData,mode=mode)
 	
 	cores = [xy[0]*xy[1] for xy in recData.keys()]
@@ -105,7 +109,7 @@ def runComparison():
 
 	bData = {
 			0: #x
-				[1,2,3,4,5,,6,7,8,9,10,15,20,25,30,35,40,45,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000],
+				[1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000],
 			1: #y
 				[1]
 	}
@@ -113,13 +117,13 @@ def runComparison():
 	tData = {
 			0: #x
 				[1,2,3,4,5,6,7,8,16,20,25,40,32,64,128,256,512,1024],
-				range(1,100),
+				#range(1,100),
 			1: #y
 				[1]
 	}
 
-	makePlot([2000,2000],900,[0,0],0,"~/Parallel/ParallelProjects/graphs/fractal/",bData,tData)
-	makePlot([2000,2000],900,[0,0],1,"~/Parallel/ParallelProjects/graphs/fractal/",bData,tData)
-	makePlot([2000,2000],900,[0,0],2,"~/Parallel/ParallelProjects/graphs/fractal/",bData,tData)
+	makePlot([2000,2000],900,[0,0],0,"~/ParallelProjects/graphs/fractal/",bData,tData)
+	makePlot([2000,2000],900,[0,0],1,"~/ParallelProjects/graphs/fractal/",bData,tData)
+	makePlot([2000,2000],900,[0,0],2,"~/ParallelProjects/graphs/fractal/",bData,tData)
 
 runComparison()
