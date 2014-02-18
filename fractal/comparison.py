@@ -65,7 +65,9 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times):
 	import pycuda
 	import pycuda.driver as cuda
-	import pycuda.autoinit
+	
+	device = cuda.Device(0)
+	context = device.make_context()
 
 	thread = (t_x,t_y,1)
 
@@ -75,6 +77,9 @@ def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times)
 	
 	times[(x,y,t_x,t_y)] = time
 	print "\t"+str(block)+", "+str(thread)+": "+str(time)
+
+	context.pop()
+	del context
 
 def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
 	recData = cudaCollect(position,zoom,dimensions,bData,tData,Pool(20),mode=mode)
