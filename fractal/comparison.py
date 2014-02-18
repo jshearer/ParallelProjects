@@ -89,9 +89,10 @@ def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
 	plt.ylabel("Time to compute (seconds)")
 	plt.xlabel("Number of CUDA cores")
 
-	title_identifier = {0:'write',1:'read and write',2:'raw compute'}[mode]
+	title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test'}[mode]
 
 	plt.title("Fractal generation ["+title_identifier+"]\nDimensions: "+str(dimensions)+"\nZoom: "+str(zoom))
+	plt.tight_layout()
 	
 	with open(directory+"mode_"+str(mode)+"--"+str(time.time())+".png",'w') as f:
 		plt.savefig(f)
@@ -101,8 +102,8 @@ def runComparison():
 
 	bData = {
 			0: #x
-				#[1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000],
-				[50,100,200],
+				[1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000],
+				#[50,100,200],
 			1: #y
 				[1]
 	}
@@ -115,8 +116,8 @@ def runComparison():
 				[1]
 	}
 
-	makePlot([2000,2000],900,[0,0],0,"/home/jshearer/ParallelProjects/graphs/fractal/",bData,tData)
-	makePlot([2000,2000],900,[0,0],1,"/home/jshearer/ParallelProjects/graphs/fractal/",bData,tData)
-	makePlot([2000,2000],900,[0,0],2,"/home/jshearer/ParallelProjects/graphs/fractal/",bData,tData)
+	#makePlot([2000,2000],900,[0,0],0,"/home/jshearer/ParallelProjects/graphs/fractal/",bData,tData)
+	#makePlot([2000,2000],900,[0,0],1,"/home/jshearer/ParallelProjects/graphs/fractal/",bData,tData)
+	makePlot([2000,2000],900,[0,0],3,"/home/jshearer/ParallelProjects/graphs/fractal/",bData,tData)
 
 runComparison()
