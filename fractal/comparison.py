@@ -72,7 +72,7 @@ def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
 	threads = threads / threads.max()
 	threads = np.log10(threads)
 ###############################################
-	times = times / times.max()
+	#times = times / times.max()
 	#times = np.log10(times)
 ###############################################
 	print threads_max
