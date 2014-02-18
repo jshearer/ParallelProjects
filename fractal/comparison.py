@@ -9,6 +9,8 @@ from cuda_fractal.pycuda import fractal as cuda_f
 import render
 
 from multiprocessing import Pool
+import pycuda
+import pycuda.driver as cuda
 
 def callCPU(position, zoom, dimensions, name, iterations=100,scale=1,save=True):
 	start = time.time()
@@ -63,8 +65,6 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,pool,mode=0):
 	return times
 
 def cudaCollectThreadFunc(x,y,t_x,t_y,position,zoom,dimensions,block,mode,times):
-	import pycuda
-	import pycuda.driver as cuda
 	
 	device = cuda.Device(0)
 	context = device.make_context()
