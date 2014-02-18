@@ -24,8 +24,9 @@ genChunk = SourceModule("""
 __global__ void gen(int size[2],float position[2],int realBlockDim[2],int realThreadCount[0],float *zoom,int *iterations,int *result, int* progress,int action)
 {
 	//actions: 0 = write
-	//		   1 = read+write
+	//	   1 = read+write
 	//         2 = none	
+	//	   3 = atomicAddTest
 
 	int startx = (blockIdx.x*size[0])+(((float)threadIdx.x/realThreadCount[0])*size[0]);
 	int starty = (blockIdx.y*size[1])+(((float)threadIdx.y/realThreadCount[1])*size[1]);
@@ -40,7 +41,10 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],int realTh
 
 	for(x = startx; x < (blockIdx.x*size[0])+((((float)(threadIdx.x+1))/realThreadCount[0])*size[0]); x++){
 		for(y = starty; y < (blockIdx.y*size[1])+((((float)(threadIdx.y+1))/realThreadCount[1])*size[1]); y++){
-			//atomicAdd(progress,1);
+			if(action==3)
+			{
+				atomicAdd(progress,1);
+			}
 			t_x = (x+position[0])/(*zoom);
 			t_y = (y+position[1])/(*zoom);
 
@@ -55,7 +59,7 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],int realTh
 				z_real = cuCrealf(z);
 				z_imag = cuCimagf(z);
 				if((z_real*z_real + z_imag*z_imag)>4){
-					if(action==0)
+					if(action==0||action==3)
 					{
 						result[x+(y*size[0]*realBlockDim[0])] = i;
 					} else if(action==1)
