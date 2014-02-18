@@ -1,24 +1,33 @@
 #define getMass(id) stars[id+6]
+#define vec3fSub(a,b,out) out.x = a.x-b.x; out.y = a.y-b.y; out.z = a.z-b.z; 
+#define vec3fAdd(a,b,out) out.x = a.x+b.x; out.y = a.y+b.y; out.z = a.z+b.z;
+#define vec3fDiv(a,b,out) out.x = a.x/b.x; out.y = a.y/b.y; out.z = a.z/b.z;
+#define vec3fDivConstant(a,b,out) out.x = a.x/b; out.y = a.y/b; out.z = a.z/b;
+#define vec3fMul(a,b,out) out.x = a.x*b.x; out.y = a.y*b.y; out.z = a.z*b.z;
+#define vec3fMulConstant(a,b,out) out.x = a.x*b; out.y = a.y*b; out.z = a.z*b;
+#define vec3fLen(a) sqrtf(powf(a.x,2)+powf(a.y,2)+powf(a.z,2));
+#define getPosition(star_id,struct) struct.x = stars[star_id]; struct.y = stars[star_id+1]; struct.z = stars[star_id+2];
+#define getVelocity(star_id,struct) struct.x = stars[star_id+3]; struct.y = stars[star_id+4]; struct.z = stars[star_id+5];
+
+struct vec3f{
+	float x;
+	float y;
+	float z;
+};
+typedef struct vec3f vec3f;
 
 __global__ void sim(float* stars, int numstars, int stride, float timestep, int* stars_complete, int steps)
 {
 	float mass,len,force;
 	int this_id, that_id;
 
-	float ThisPos_x,ThisPos_y,ThisPos_z;
-	float NewVelocity_x,NewVelocity_y,NewVelocity_z;
-	float dir_x,dir_y,dir_z;
+	vec3f ThisPos,ThatPos,NewVelocity,dir;
 	int step;
 	for(step = 0; step<steps; step++)
 	{
 		for(this_id = blockIdx.x; this_id<numstars; this_id += stride*7){
-			NewVelocity_x = stars[this_id+3];
-			NewVelocity_y = stars[this_id+4];
-			NewVelocity_z = stars[this_id+5];
-
-			ThisPos_x = stars[this_id];
-			ThisPos_y = stars[this_id+1];
-			ThisPos_z = stars[this_id+2];
+			getVelocity(this_id,NewVelocity);
+			getPosition(this_id,ThisPos);
 
 			for(that_id = 0; that_id<numstars; that_id+=7)
 			{
@@ -29,52 +38,40 @@ __global__ void sim(float* stars, int numstars, int stride, float timestep, int*
 
 					//subtract this.pos-that.pos
 
+					getPosition(that_id,ThatPos);
 
-					dir_x = ThisPos_x-stars[that_id];
-					dir_y = ThisPos_y-stars[that_id+1];
-					dir_z = ThisPos_z-stars[that_id+2];
+					vec3fSub(ThisPos,ThatPos,dir);
 
 					//Calculate force magnitude
 					mass = getMass(this_id)*getMass(that_id);
-					len = sqrtf(
-								powf(dir_x,2)+
-								powf(dir_y,2)+
-								powf(dir_z,2));
+					len = vec3fLen(dir);
 
 					force = mass/powf(len,2);
 
 					//vec3fNormalize(thisMinusThat); //Calculate direction of influence
-					dir_x = dir_x/len;
-					dir_y = dir_y/len;
-					dir_z = dir_z/len;
+					vec3fDivConstant(dir,len,dir);
 
 
 					//vec3fMul(thisMinusThat,forceVec,thisMinusThat); //multiply by force magnitude
-					dir_x = dir_x * force;
-					dir_y = dir_y * force;
-					dir_z = dir_z * force;
+					vec3fMulConstant(dir,force,dir);
 
 					//vec3fMul(thisMinusThat,stepVector,thisMinusThat); // *delta-t
-					dir_x = dir_x * timestep;
-					dir_y = dir_y * timestep;
-					dir_z = dir_z* timestep;
+					vec3fMulConstant(dir,timestep,dir);
 
 					//vec3fAdd(NewVelocity,thisMinusThat,NewVelocity); //Incorporate the calculated force into the new velocity
 
-					NewVelocity_x = NewVelocity_x + dir_x;
-					NewVelocity_y = NewVelocity_y + dir_y;
-					NewVelocity_z = NewVelocity_z + dir_z;
+					vec3fAdd(NewVelocity,dir,NewVelocity);
 				}
 
 				//store NewVelocity
-				stars[this_id+3] = NewVelocity_x;	
-				stars[this_id+4] = NewVelocity_y;
-				stars[this_id+5] = NewVelocity_z;
+				stars[this_id+3] = NewVelocity.x;
+				stars[this_id+4] = NewVelocity.y;
+				stars[this_id+5] = NewVelocity.z;
 
 				//store NewPosition
-				stars[this_id] = stars[this_id] + NewVelocity_x;
-				stars[this_id+1] = stars[this_id+1] + NewVelocity_y;
-				stars[this_id+2] = stars[this_id+2] + NewVelocity_z;
+				stars[this_id] = stars[this_id] + NewVelocity.x;
+				stars[this_id+1] = stars[this_id+1] + NewVelocity.y;
+				stars[this_id+2] = stars[this_id+2] + NewVelocity.z;
 			}
 
 			//I would like to wait until *all* blocks have reached this point, but that's not possible in CUDA. 
