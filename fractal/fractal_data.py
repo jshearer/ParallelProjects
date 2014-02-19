@@ -1,5 +1,4 @@
 import tables as tab
-from call_utils import callCUDA
 
 data_file = None
 
@@ -21,7 +20,9 @@ class MetaData(tab.IsDescription):
 	iterations    = tab.Int32Col()
 
 def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=100):
-	#First run, block checking only
+	from call_utils import callCUDA
+	#Only compile the function when we need to
+	
 	init()
 	global data_file
 

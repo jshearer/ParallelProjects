@@ -48,7 +48,7 @@ def makePlot(data,directory):
 
 	title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test + regular write'}[mode]
 
-	plt.title("Fractal generation ["+title_identifier+"]\nDimensions: "+str(dimensions)+"\nZoom: "+str(zoom)+)
+	plt.title("Fractal generation ["+title_identifier+"]\nDimensions: "+str(dimensions)+"\nZoom: "+str(zoom))
 	plt.tight_layout()
 	
 	with open(directory+"mode_"+str(mode)+"-id"+str(index)+".png",'w') as f:
