@@ -110,7 +110,11 @@ def extractCols(nExec):
 
 	meta = data_file.getNode("/execSets/"+str(nExec)+"/meta")
 
-	return (cores,times,threads,meta[0]['zoom'],meta[0]['mode'],(meta[0]['dimensions_x'],meta[0]['dimensions_y']),meta[0]['iterations'],nExec)
+	iters = 0
+	if 'iterations' in meta[0]:
+		iters = meta[0]['iterations']
+	
+	return (cores,times,threads,meta[0]['zoom'],meta[0]['mode'],(meta[0]['dimensions_x'],meta[0]['dimensions_y']),iters,nExec)
 
 
 def getGroup():
