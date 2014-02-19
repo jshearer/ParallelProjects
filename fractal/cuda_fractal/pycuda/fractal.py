@@ -124,26 +124,21 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 
 	if not silent:
 		print("Calling CUDA function. Starting timer. progress starting at: "+str(ppc[0,0]))
-	start_time = time.time()
-
+	
+	start = cuda.Event()
+	end = cuda.Event()
+	start.record()
+	
 	genChunk(chunkS, posit, blockD, threadD, zoo, iters, res, ppc_ptr, act, block=thread, grid=block)
 	
-	if report:
-		total = (dimensions[0]*dimensions[1])
-		print "Reporting up to "+str(total)+", "+str(ppc[0,0])
-		while ppc[0,0] < ((dimensions[0]*dimensions[1])):
-			pct = (ppc[0,0]*100)/(total)
-			hashes = "#"*pct
-			dashes = "-"*(100-pct)
-			print "\r["+hashes+dashes+"] "+locale.format("%i",ppc[0,0],grouping=True)+"/"+locale.format("%i",total,grouping=True),
-			time.sleep(0.00001)
-
-
+	end.record()
 	cuda.Context.synchronize()
-	end_time = time.time()-start_time
+	
+	millis = start.time_til(end)
+	secondss = millis / 1000.0
+
 	if not silent:
-		elapsed_time = end_time-start_time
-		print("Done with call. Took "+str(elapsed_time)+" seconds. Here's the repr'd arary:\n")
+		print("Done with call. Took "+str(secondss)+" seconds. Here's the repr'd arary:\n")
 
 	#Copy result back from device
 	cuda.memcpy_dtoh(result, res)
@@ -152,4 +147,4 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 		print(result)
 		
 	result[result.shape[0]/2,result.shape[1]/2]=iterations+1 #mark center of image
-	return result,end_time
+	return result,seconds
