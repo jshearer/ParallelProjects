@@ -1,7 +1,3 @@
-import matplotlib
-matplotlib.use('Agg') #to use savefig without DISPLAY set
-import matplotlib.pyplot as plt
-import matplotlib as pltlib
 import time
 
 import numpy as np
@@ -9,6 +5,9 @@ import numpy as np
 from cpu_fractal import fractal_2 as cpu_f
 from cuda_fractal.pycuda import fractal as cuda_f
 import render
+
+import fractal_data
+import plot_data
 
 def callCPU(position, zoom, dimensions, name, iterations=100,scale=1,save=True):
 	start = time.time()
@@ -34,76 +33,12 @@ def compareParams(position, zoom, dimensions, name, iterations=100,save=True):
 	print "CPU ran in "+str(cpuTime)+"s"
 	print "CUDA ran in "+str(cudaTime)+"s"
 
-def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
-	#First run, block checking only
-	times = {}
-
-	#[0] = start,
-	#[1] = end,
-	#[2] = stride
-	for x in blockData[0]:
-		for y in blockData[1]:
-
-			block = (x,y,1)
-
-			for t_x in threadData[0]:
-				for t_y in threadData[1]:
-					
-					thread = (t_x,t_y,1)
-					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
-					times[(x,y,t_x,t_y)] = time
-					print "\t"+str(block)+", "+str(thread)+": "+str(time)
-	return times
-	
-def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
-	recData = cudaCollect(position,zoom,dimensions,bData,tData,mode=mode)
-	
-	cores = [xy[0]*xy[1] for xy in recData.keys()]
-	times = recData.values()
-	threads = [float(xy[2]*xy[3]) for xy in recData.keys()]
-
-	threads_max = max(threads)
-	threads_min = min(threads)
-###############################################
-	threads = np.array(threads,dtype=np.float)
-	cores = np.array(cores,dtype=np.float)
-	times = np.array(times,dtype=np.float)
-###############################################
-	threads = threads / threads.max()
-	threads = np.log10(threads)
-###############################################
-	#times = times / times.max()
-	#times = np.log10(times)
-###############################################
-	print threads_max
-
-	#threads = [(x,x,x) for x in threads]
-	print threads
-	print cores
-	print times
-
-	#plt.plot(x_coords,y_coords,'ro')
-
-	plt.scatter(cores,times,c=threads,marker="+")
-
-	plt.ylabel("Time to compute (seconds)")
-	plt.xlabel("Number of CUDA cores")
-
-	title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test + regular write'}[mode]
-
-	plt.title("Fractal generation ["+title_identifier+"]\nDimensions: "+str(dimensions)+"\nZoom: "+str(zoom))
-	plt.tight_layout()
-	
-	with open(directory+"mode_"+str(mode)+"--"+str(time.time())+".png",'w') as f:
-		plt.savefig(f)
-	plt.clf()
-
 def runComparison():
 
 	bData = {
 			0: #x
-				[1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000],
-				#[50,100,200],
+				#[1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,60,70,80,90,100,150,200,250,300,350,400,450,500,600,700,800,900,1000],
+				[50,100,200],
 			1: #y
 				[1]
 	}
@@ -116,8 +51,8 @@ def runComparison():
 				[1]
 	}
 
-	#makePlot([2000,2000],900,[0,0],0,"/home/jshearer/ParallelProjects/graphs/fractal/",bData,tData)
-	#makePlot([2000,2000],900,[0,0],1,"/home/jshearer/ParallelProjects/graphs/fractal/",bData,tData)
-	makePlot([2000,2000],900,[0,0],3,"/home/jshearer/ParallelProjects/graphs/fractal/",bData,tData)
+	index = fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=0)
+	cores,times,threads = fractal_data.extractCols(index)
+	plot_data.makePlot(cores,times,threads,0,"/home/jshearer/ParallelProjects/graphs/fractal/")
 
 runComparison()
