@@ -45,7 +45,7 @@ def makePlot(data,directory,xlog=True,ylog=False):
 	
 	fig = plt.figure(figsize = (12,7),dpi=350)
 
-    ax = fig.add_subplot(111) 
+	ax = fig.add_subplot(111) 
 
 	ax.set_xlim([x_axis.min()-(x_axis.min()/10.0),x_axis.max()+(x_axis.max()/10.0)])
 	ax.set_ylim([y_axis.min()-(y_axis.min()/10.0),y_axis.max()+(y_axis.max()/10.0)])
