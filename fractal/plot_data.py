@@ -3,6 +3,7 @@ matplotlib.use('Agg') #to use savefig without DISPLAY set
 import matplotlib.pyplot as plt
 import matplotlib as pltlib
 import time
+import numpy as np
 
 def makePlot(cores,times,threads,mode,directory):
 
