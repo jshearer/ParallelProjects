@@ -2,34 +2,47 @@ import tables as tab
 
 data_file = None
 
+class Execution(tab.IsDescription):
+	index		  = tab.Int32Col()
+	block_x		  = tab.Int32Col()
+	block_y		  = tab.Int32Col()
+	thread_x	  = tab.Int32Col()
+	thread_y	  = tab.Int32Col()
+	time		  = tab.Float64Col()
+
+class MetaData(tab.IsDescription):
+	pos_x 		  = tab.Float64Col()
+	pos_y 		  = tab.Float64Col()
+	zoom  		  = tab.Float32Col()
+	dimensions_x  = tab.Int32Col()
+	dimensions_y  = tab.Int32Col()
+	mode		  = tab.UInt8Col()
+	iterations    = tab.Int32Col()
+
+class OverlapExecution(tab.IsDescription):
+	index		  = tab.Int32Col()
+	block_x		  = tab.Int32Col()
+	block_y		  = tab.Int32Col()
+	thread_x	  = tab.Int32Col()
+	thread_y	  = tab.Int32Col()
+	overlap		  = tab.Int64Col()
+	time		  = tab.Float64Col()
+
 def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=100):
 	from call_utils import callCUDA
 	#Only compile the function when we need to
-	
-	class Execution(tab.IsDescription):
-		index		  = tab.Int32Col()
-		block_x		  = tab.Int32Col()
-		block_y		  = tab.Int32Col()
-		thread_x	  = tab.Int32Col()
-		thread_y	  = tab.Int32Col()
-		time		  = tab.Float64Col()
+	overlap = (mode==4)
 
-	class MetaData(tab.IsDescription):
-		pos_x 		  = tab.Float64Col()
-		pos_y 		  = tab.Float64Col()
-		zoom  		  = tab.Float32Col()
-		dimensions_x  = tab.Int32Col()
-		dimensions_y  = tab.Int32Col()
-		mode		  = tab.UInt8Col()
-		iterations    = tab.Int32Col()
-
-	
 	init()
 	global data_file
 
 	nExec = len(data_file.listNodes(getGroup()))
 
-	grp = data_file.createGroup(getGroup(),str(nExec), "Execution number "+str(nExec+1))
+	if overlap:
+		grp = data_file.createGroup(getGroup(),"Overlap "+str(nExec), "Overlap run "+str(nExec+1))
+	else:
+		grp = data_file.createGroup(getGroup(),str(nExec), "Execution number "+str(nExec+1))
+	
 	meta = data_file.createTable(grp,"meta",MetaData,"Metadata")
 
 	meta.row['pos_x'] = position[0]
@@ -46,8 +59,10 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=
 
 	meta.row.append()
 	meta.flush()
-
-	data = data_file.createTable(grp,"data",Execution,"Real data")
+	if overlap:
+		data = data_file.createTable(grp,"data",OverlapExecution,"Real data")	
+	else:
+		data = data_file.createTable(grp,"data",Execution,"Real data")
 
 	#[0] = start,
 	#[1] = end,
@@ -61,17 +76,35 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=
 				for t_y in threadData[1]:
 					
 					thread = (t_x,t_y,1)
-					time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
+					if overlap:
+						time,result = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
+						data.row['overlap'] = calculateOverlap(result)
+					else:
+						time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
 					data.row['time'] = time
 					data.row['index'] = len(data)
 					data.row['block_x'] = x
 					data.row['block_y'] = y
 					data.row['thread_x'] = t_x
 					data.row['thread_y'] = t_y
+
+					if overlap:
+						print "\t"+str(block)+", "+str(thread)+": "+str(time)+", Overlap: "+str(data.row['overlap'])
+					else:
+						print "\t"+str(block)+", "+str(thread)+": "+str(time)
+
 					data.row.append()
 					data.flush()
-					print "\t"+str(block)+", "+str(thread)+": "+str(time)
 	return nExec
+
+def calculateOverlap(result):
+	overlap = 0
+
+	for x in range(0,result.shape[0]):
+		for y in range(0,result.shape[1]):
+			overlap = overlap + result[x][y]
+
+	return overlap
 
 def alreadyRan(position,dimensions,zoom,mode):
 	init()
