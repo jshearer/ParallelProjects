@@ -2,26 +2,27 @@ import tables as tab
 
 data_file = None
 
-class Execution(tab.IsDescription):
-	index		  = tab.Int32Col()
-	block_x		  = tab.Int32Col()
-	block_y		  = tab.Int32Col()
-	thread_x	  = tab.Int32Col()
-	thread_y	  = tab.Int32Col()
-	time		  = tab.Float64Col()
-
-class MetaData(tab.IsDescription):
-	pos_x 		  = tab.Float64Col()
-	pos_y 		  = tab.Float64Col()
-	zoom  		  = tab.Float32Col()
-	dimensions_x  = tab.Int32Col()
-	dimensions_y  = tab.Int32Col()
-	mode		  = tab.UInt8Col()
-	iterations    = tab.Int32Col()
-
 def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=100):
 	from call_utils import callCUDA
 	#Only compile the function when we need to
+	
+	class Execution(tab.IsDescription):
+		index		  = tab.Int32Col()
+		block_x		  = tab.Int32Col()
+		block_y		  = tab.Int32Col()
+		thread_x	  = tab.Int32Col()
+		thread_y	  = tab.Int32Col()
+		time		  = tab.Float64Col()
+
+	class MetaData(tab.IsDescription):
+		pos_x 		  = tab.Float64Col()
+		pos_y 		  = tab.Float64Col()
+		zoom  		  = tab.Float32Col()
+		dimensions_x  = tab.Int32Col()
+		dimensions_y  = tab.Int32Col()
+		mode		  = tab.UInt8Col()
+		iterations    = tab.Int32Col()
+
 	
 	init()
 	global data_file
