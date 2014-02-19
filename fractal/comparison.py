@@ -1,9 +1,4 @@
-import time
-
-import numpy as np
-
 import call_utils
-
 import fractal_data
 import plot_data
 
