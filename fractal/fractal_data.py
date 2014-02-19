@@ -62,7 +62,7 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
 					data.row.append()
 					data.flush()
 					print "\t"+str(block)+", "+str(thread)+": "+str(time)
-	return nExecn
+	return nExec
 
 def alreadyRan(position,dimensions,zoom,mode):
 	init()
