@@ -21,15 +21,18 @@ from pycuda.compiler import SourceModule
 
 genChunk = SourceModule("""
 #include <cuComplex.h>
-__global__ void gen(int size[2],float position[2],int realBlockDim[2],int realThreadCount[0],float *zoom,int *iterations,int *result, int* progress,int action)
-{
+__global__ void gen(int size[2],float position[2],float *zoom,int *iterations,int *result, int* progress,int action)
+{ 	//blockDim = size of threads per block
+	//gridDim = size of blocks
+
 	//actions: 0 = write
 	//	   1 = read+write
 	//     2 = none	
 	//	   3 = atomicAddTest
+	//	   4 = overlapMap
 
-	int startx = (blockIdx.x*size[0])+(((float)threadIdx.x/realThreadCount[0])*size[0]);
-	int starty = (blockIdx.y*size[1])+(((float)threadIdx.y/realThreadCount[1])*size[1]);
+	int startx = (blockIdx.x*size[0])+(((float)threadIdx.x/blockDim.x)*size[0]);
+	int starty = (blockIdx.y*size[1])+(((float)threadIdx.y/blockDim.y)*size[1]);
 
 	float t_x, t_y;
 	int i, x, y;
@@ -39,8 +42,8 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],int realTh
 
 	float z_real, z_imag;
 
-	for(x = startx; x < (blockIdx.x*size[0])+((((float)(threadIdx.x+1))/realThreadCount[0])*size[0]); x++){
-		for(y = starty; y < (blockIdx.y*size[1])+((((float)(threadIdx.y+1))/realThreadCount[1])*size[1]); y++){
+	for(x = startx; x < (blockIdx.x*size[0])+((((float)(threadIdx.x+1))/blockDim.x)*size[0]); x++){
+		for(y = starty; y < (blockIdx.y*size[1])+((((float)(threadIdx.y+1))/blockDim.y)*size[1]); y++){
 			if(action==3)
 			{
 				atomicAdd(progress,1);
@@ -52,21 +55,26 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],int realTh
 			z.y = t_y;
 			z_unchanging.x = t_x;
 			z_unchanging.y = t_y; //optomize this with pointer magic?
-
-			for(i = 0; i<(*iterations) + 1; i++){
-				z = cuCmulf(z,z);
-				z = cuCaddf(z,z_unchanging); //z = z^2 + z_orig
-				z_real = cuCrealf(z);
-				z_imag = cuCimagf(z);
-				if((z_real*z_real + z_imag*z_imag)>4){
-					if(action==0||action==3)
-					{
-						result[x+(y*size[0]*realBlockDim[0])] = i;
-					} else if(action==1)
-					{
-						result[x+(y*size[0]*realBlockDim[0])] = result[x+(y*size[0]*realBlockDim[0])] + 1;
-					}//else if action==2, do nothing
-					break;
+			if(action==4) //generate overlap map
+			{
+				result[x+(y*size[0]*gridDim.x)] = result[x+(y*size[0]*gridDim.x)] + 1;
+			} else
+			{
+				for(i = 0; i<(*iterations) + 1; i++){
+					z = cuCmulf(z,z);
+					z = cuCaddf(z,z_unchanging); //z = z^2 + z_orig
+					z_real = cuCrealf(z);
+					z_imag = cuCimagf(z);
+					if((z_real*z_real + z_imag*z_imag)>4){
+						if(action==0)//act cool, do the default
+						{
+							result[x+(y*size[0]*gridDim.x)] = i;
+						} else if(action==1)// read+write test
+						{
+							result[x+(y*size[0]*gridDim.x)] = result[x+(y*size[0]*gridDim.x)] + 1;
+						}//else if action==2, do nothing
+						break;
+					}
 				}
 			}
 		}
@@ -115,8 +123,6 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	#Copy parameters over to device
 	chunkS = In(chunkSize)
 	posit = In(position)
-	blockD = In(blockDim)
-	threadD = In(numpy.array([thread[0],thread[1]],dtype=numpy.int32))
 	zoo = In(zoom)
 	iters = In(iterations)
 	res = In(result)
@@ -129,7 +135,7 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	end = cuda.Event()
 	start.record()
 	
-	genChunk(chunkS, posit, blockD, threadD, zoo, iters, res, ppc_ptr, act, block=thread, grid=block)
+	genChunk(chunkS, posit, zoo, iters, res, ppc_ptr, act, block=thread, grid=block)
 	
 	end.record()
 	cuda.Context.synchronize()

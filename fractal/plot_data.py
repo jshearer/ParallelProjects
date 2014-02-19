@@ -45,7 +45,7 @@ def makePlot(data,directory,xlog=True,ylog=False):
 	
 	fig = plt.figure(figsize = (12,7),dpi=350)
 
-        ax = fig.add_subplot(111) 
+    ax = fig.add_subplot(111) 
 
 	ax.set_xlim([x_axis.min()-(x_axis.min()/10.0),x_axis.max()+(x_axis.max()/10.0)])
 	ax.set_ylim([y_axis.min()-(y_axis.min()/10.0),y_axis.max()+(y_axis.max()/10.0)])
@@ -55,7 +55,6 @@ def makePlot(data,directory,xlog=True,ylog=False):
 	cbar = plt.colorbar(sc,use_gridspec=True)
 	cbar.set_label("Number of threads per core")
 
-
 	ax.set_ylabel("Time to compute "+("log10" if ylog else "")+"(seconds)")
 	ax.set_xlabel("Number of CUDA cores"+(", log10" if xlog else ""))
 
@@ -63,6 +62,7 @@ def makePlot(data,directory,xlog=True,ylog=False):
 		ax.set_xscale('log')
 	if ylog:
 		ax.set_yscale('log')
+
 	ax.grid(True)
 
 	title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test + regular write'}[mode]
