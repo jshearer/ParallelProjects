@@ -134,11 +134,11 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	end.record()
 	cuda.Context.synchronize()
 	
-	millis = start.time_til(end)
-	secondss = millis / 1000.0
+	millis = start.time_till(end)
+	seconds = millis / 1000.0
 
 	if not silent:
-		print("Done with call. Took "+str(secondss)+" seconds. Here's the repr'd arary:\n")
+		print("Done with call. Took "+str(seconds)+" seconds. Here's the repr'd arary:\n")
 
 	#Copy result back from device
 	cuda.memcpy_dtoh(result, res)

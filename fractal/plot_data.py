@@ -26,6 +26,8 @@ def makePlot(data,directory):
 	#times = times / times.max()
 	#times = np.log10(times)
 ###############################################
+	cores = np.log10(cores)
+##############################################
 	print threads_max
 
 	#threads = [(x,x,x) for x in threads]
@@ -38,7 +40,7 @@ def makePlot(data,directory):
 	plt.scatter(cores,times,c=threads,marker="+")
 
 	plt.ylabel("Time to compute (seconds)")
-	plt.xlabel("Number of CUDA cores")
+	plt.xlabel("Number of CUDA cores, log10")
 
 	title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test + regular write'}[mode]
 
