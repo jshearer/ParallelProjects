@@ -18,8 +18,9 @@ class MetaData(tab.IsDescription):
 	dimensions_x  = tab.Int32Col()
 	dimensions_y  = tab.Int32Col()
 	mode		  = tab.UInt8Col()
+	iterations    = tab.Int32Col()
 
-def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
+def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=100):
 	#First run, block checking only
 	init()
 	global data_file
@@ -35,6 +36,12 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
 	meta.row['dimensions_y'] = dimensions[1]
 	meta.row['zoom'] = zoom
 	meta.row['mode'] = mode
+	meta.row['iterations'] = iterations
+	#git commit/hash
+	#version info
+	#frozen library data
+	#os?
+
 	meta.row.append()
 	meta.flush()
 
@@ -102,7 +109,7 @@ def extractCols(nExec):
 
 	meta = data_file.getNode("/execSets/"+str(nExec)+"/meta")
 
-	return (cores,times,threads,meta[0]['zoom'],meta[0]['mode'],(meta[0]['dimensions_x'],meta[0]['dimensions_y']))
+	return (cores,times,threads,meta[0]['zoom'],meta[0]['mode'],(meta[0]['dimensions_x'],meta[0]['dimensions_y']),meta[0]['iterations'],nExec)
 
 
 def getGroup():
