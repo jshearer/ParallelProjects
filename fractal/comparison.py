@@ -2,33 +2,16 @@ import time
 
 import numpy as np
 
-from cpu_fractal import fractal_2 as cpu_f
-from cuda_fractal.pycuda import fractal as cuda_f
-import render
+import call_utils
 
 import fractal_data
 import plot_data
 
-def callCPU(position, zoom, dimensions, name, iterations=100,scale=1,save=True):
-	start = time.time()
-	result = cpu_f.gen(position,zoom,dimensions,iterations=iterations,silent=True,scale=scale)
-	elapsed = time.time()-start
-	if save:
-		render.SaveToPngThread(result,"cpu_"+name,render.colors['default'],silent=True)
-	return elapsed
-
-
-def callCUDA(position, zoom, dimensions, name, iterations=100,scale=1,save=True,block=(5,5,1),thread=(1,1,1),mode=0):
-	result,time = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True,debug=False,action=mode,scale=scale,block=block,thread=thread)
-	if save:
-		render.SaveToPngThread(result,"cuda_mode"+str(mode)+"-"+name,render.colors['default'],silent=False)
-	return time
-
 def compareParams(position, zoom, dimensions, name, iterations=100,save=True):
 	print "Comparing paramaters for ("+str(name)+"): ( ("+str(position[0])+", "+str(position[1])+"), "+str(zoom)+", ("+str(dimensions[0])+", "+str(dimensions[1])+") )"
 
-	cpuTime = callCPU(position,zoom,dimensions,name,iterations,save=save)
-	cudaTime = callCUDA(position,zoom,dimensions,name,iterations,save=save)
+	cpuTime = call_utils.callCPU(position,zoom,dimensions,name,iterations,save=save)
+	cudaTime = call_utils.callCUDA(position,zoom,dimensions,name,iterations,save=save)
 
 	print "CPU ran in "+str(cpuTime)+"s"
 	print "CUDA ran in "+str(cudaTime)+"s"

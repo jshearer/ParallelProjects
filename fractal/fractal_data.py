@@ -1,4 +1,5 @@
 import tables as tab
+from call_utils import callCUDA
 
 data_file = None
 
@@ -21,7 +22,7 @@ class MetaData(tab.IsDescription):
 def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
 	#First run, block checking only
 	global data_file
-	
+
 	nExec = len(getGroup())
 
 	grp = data_file.createGroup(getGroup(),nExec, "Execution number "+str(nExec+1))

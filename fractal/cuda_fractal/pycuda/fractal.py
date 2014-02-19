@@ -25,7 +25,7 @@ __global__ void gen(int size[2],float position[2],int realBlockDim[2],int realTh
 {
 	//actions: 0 = write
 	//	   1 = read+write
-	//         2 = none	
+	//     2 = none	
 	//	   3 = atomicAddTest
 
 	int startx = (blockIdx.x*size[0])+(((float)threadIdx.x/realThreadCount[0])*size[0]);
