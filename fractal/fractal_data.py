@@ -1,5 +1,4 @@
 import tables as tab
-from comparison import callCUDA
 
 data_file = None
 
