@@ -89,7 +89,7 @@ def makePlot(dimensions,zoom,position,mode,directory,bData,tData):
 	plt.ylabel("Time to compute (seconds)")
 	plt.xlabel("Number of CUDA cores")
 
-	title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test'}[mode]
+	title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test + regular write'}[mode]
 
 	plt.title("Fractal generation ["+title_identifier+"]\nDimensions: "+str(dimensions)+"\nZoom: "+str(zoom))
 	plt.tight_layout()
@@ -110,7 +110,7 @@ def runComparison():
 
 	tData = {
 			0: #x
-				[1,2,3,4,5,6,7,8,16,20,25,40,32,64,128,256,512,1024],
+				[1,2,3,4,5,6,7,8,16,20,25,40,32,64,128],#,256,512,1024],
 				#range(1,100),
 			1: #y
 				[1]
