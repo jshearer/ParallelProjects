@@ -20,7 +20,8 @@ class MetaData(tab.IsDescription):
 
 def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
 	#First run, block checking only
-
+	global data_file
+	
 	nExec = len(getGroup())
 
 	grp = data_file.createGroup(getGroup(),nExec, "Execution number "+str(nExec+1))
@@ -63,6 +64,7 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
 
 def alreadyRan(position,dimensions,zoom,mode):
 	init()
+	global data_file
 
 	for node in data_file.walkNodes('/execSets'):
 		pos_x = (node.meta['pos_x']==position[0])
@@ -83,6 +85,7 @@ def alreadyRan(position,dimensions,zoom,mode):
 
 def extractCols(nExec):
 	init()
+	global data_file
 
 	cores   = []
 	times   = []
@@ -100,10 +103,13 @@ def extractCols(nExec):
 
 def getGroup():
 	init()
+	global data_file
 
 	return data_file.root.execSets
 
 def init():
+	global data_file
+
 	if data_file == None:
 		filename = "fractalData.h5"
 		data_file = tab.openFile(filename,mode='a',title="Fractal timing data")
