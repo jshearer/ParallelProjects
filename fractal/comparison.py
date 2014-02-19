@@ -31,8 +31,8 @@ def runComparison():
 
 	index = fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=0)
 	print "Inserted into index: "+str(index)
-	cores,times,threads = fractal_data.extractCols(index)
+	data = fractal_data.extractCols(index)
 	print "len cores,times,threads ("+str(len(cores))+", "+str(len(times))+", "+str(len(threads))+")."
-	plot_data.makePlot(cores,times,threads,0,"/home/jshearer/ParallelProjects/graphs/fractal/")
+	plot_data.makePlot(data,"/home/jshearer/ParallelProjects/graphs/fractal/")
 
 runComparison()

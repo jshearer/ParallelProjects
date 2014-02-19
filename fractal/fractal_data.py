@@ -100,7 +100,9 @@ def extractCols(nExec):
 		threads.append(execution['thread_x']*execution['thread_y'])
 		times.append(execution['time'])
 
-	return cores,times,threads
+	meta = data_file.getNode("/execSets/"+str(nExec)+"/meta")
+
+	return (cores,times,threads,meta[0]['zoom'],meta[0]['mode'],(meta[0]['dimensions_x'],meta[0]['dimensions_y']))
 
 
 def getGroup():

@@ -5,7 +5,13 @@ import matplotlib as pltlib
 import time
 import numpy as np
 
-def makePlot(cores,times,threads,mode,directory):
+def makePlot(data,directory):
+	cores      = data[0]
+	times      = data[1]
+	threads    = data[2]
+	zoom       = data[3]
+	mode       = data[4]
+	dimensions = data[5]
 
 	threads_max = max(threads)
 	threads_min = min(threads)
