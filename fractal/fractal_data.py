@@ -21,11 +21,12 @@ class MetaData(tab.IsDescription):
 
 def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0):
 	#First run, block checking only
+	init()
 	global data_file
 
-	nExec = len(getGroup())
+	nExec = len(data_file.listNodes(getGroup()))
 
-	grp = data_file.createGroup(getGroup(),nExec, "Execution number "+str(nExec+1))
+	grp = data_file.createGroup(getGroup(),str(nExec), "Execution number "+str(nExec+1))
 	meta = data_file.createTable(grp,"meta",MetaData,"Metadata")
 
 	meta.row['pos_x'] = position[0]
@@ -114,5 +115,5 @@ def init():
 	if data_file == None:
 		filename = "fractalData.h5"
 		data_file = tab.openFile(filename,mode='a',title="Fractal timing data")
-		if not ("execSets" in data_file):
+		if not ("/execSets" in data_file):
 			data_file.createGroup("/","execSets","Sets of execution with varying position,zoom,dimensions,blockData, or threadData")
