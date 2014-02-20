@@ -98,13 +98,8 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=
 	return nExec
 
 def calculateOverlap(result):
-	overlap = 0
-
-	for x in range(0,result.shape[0]):
-		for y in range(0,result.shape[1]):
-			overlap = overlap + result[x][y]
-
-	return overlap
+	import numpy as np
+	return np.sum(result)-(result.shape[0]*result.shape[1])
 
 def alreadyRan(position,dimensions,zoom,mode):
 	init()
