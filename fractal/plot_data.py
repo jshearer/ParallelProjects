@@ -2,6 +2,7 @@ import matplotlib
 matplotlib.use('Agg') #to use savefig without DISPLAY set
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter, LogFormatter
+from matplotlib import gridspec
 import matplotlib as pltlib
 import time
 import numpy as np
@@ -47,23 +48,28 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False):
 	
 	fig = plt.figure(figsize = (12,7),dpi=350)
 
-	ax = fig.add_subplot(111) 
+	gspec = gridspec.GridSpec(1,3,width_ratios=[30,2,2])
 
-	ax.set_xlim([x_axis.min()-(x_axis.min()/10.0),x_axis.max()+(x_axis.max()/10.0)])
-	ax.set_ylim([y_axis.min()-(y_axis.min()/10.0),y_axis.max()+(y_axis.max()/10.0)])
+	ax = plt.subplot(gspec[0])
+
+	#ax.set_xlim([-(x_axis.min()/10.0),x_axis.max()+(x_axis.max()/10.0)])
+	#ax.set_ylim([-(y_axis.min()/10.0),y_axis.max()+(y_axis.max()/10.0)])
 
 	sc = ax.scatter(x_axis,y_axis,c=threads,marker="+",norm=pltlib.colors.LogNorm())	
 	if mode==4:
-		ax2 = ax.twinx()
-		ax2.set_ylim(overlap.min()-(overlap.min()/10.0),overlap.max()-(overlap.max()/10.0))
-		ov = ax2.scatter(x_axis,overlap,c="k",marker="o")
-		ax2.set_ylabel("Overlap (# of pixels)")
+#		ax2 = ax.twinx()
+#		ax2.set_ylim(overlap.min()-(overlap.min()/10.0),overlap.max()-(overlap.max()/10.0))
+#		ov = ax2.scatter(x_axis,overlap,c="k",marker="o")
+#		ax2.set_ylabel("Overlap (# of pixels)")
 
-		ax.legend((sc,ov),('Time','Overlap'),scatterpoints=4,loc="upper right",ncols=1)
+#		ax.legend((sc,ov),('Time','Overlap'),scatterpoints=4,loc="upper right")
+		pass
 	else:
-		ax.legend((sc), ('Time'),scatterpoints=4,loc="upper right",ncols=1)
+		ax.legend((sc), ('Time'),scatterpoints=4,loc="upper right")
+	
+	cb_ax = plt.subplot(gspec[2])
 
-	cbar = plt.colorbar(sc,use_gridspec=True)
+	cbar = fig.colorbar(sc, cax=cb_ax)
 	cbar.set_label("Number of threads per core")
 
 	ax.set_ylabel("Time to compute "+("log10" if ylog else "")+"(seconds)")
@@ -73,15 +79,18 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False):
 		ax.set_xscale('log')
 	if ylog:
 		ax.set_yscale('log')
-	if ovlog: #overlap log
-		ax2.set_yscale('log')
+#	if ovlog: #overlap log
+#		ax2.set_yscale('log')
 
 	ax.grid(True)
-
+	ax.axis('tight')
 	title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test + regular write',4:'Overlap'}[mode]
 
-	plt.title("Fractal generation ["+title_identifier+"]\nDimensions: "+str(dimensions)+"\nZoom: "+str(zoom))
+	fig.suptitle("Fractal generation ["+title_identifier+"]\nDimensions: "+str(dimensions)+"\nZoom: "+str(zoom))
 	plt.tight_layout()
+	
+	plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+	
 	print "Saving file now."	
 	with open(directory+"mode_"+str(mode)+"-id"+str(index)+".png",'w') as f:
 		plt.savefig(f)
