@@ -6,7 +6,7 @@ import matplotlib as pltlib
 import time
 import numpy as np
 
-def makePlot(data,directory,xlog=True,ylog=False):
+def makePlot(data,directory,xlog=True,ylog=False,ovlog=False):
 	cores      = data[0]
 	times      = data[1]
 	threads    = data[2]
@@ -24,8 +24,6 @@ def makePlot(data,directory,xlog=True,ylog=False):
 	times = np.array(times,dtype=np.float)
 	if mode==4:
 		overlap = np.array(data[8],dtype=np.float)
-		overlap = overlap/overlap.max()
-		overlap = overlap * times.max() #scale overlap to same scale as times
 ###############################################
 #	threads = threads / threads.max()
 #	threads = np.log10(threads)
@@ -56,7 +54,14 @@ def makePlot(data,directory,xlog=True,ylog=False):
 
 	sc = ax.scatter(x_axis,y_axis,c=threads,marker="+",norm=pltlib.colors.LogNorm())	
 	if mode==4:
-		pass#ov = ax.scatter(x_axis,overlap,c="k",marker=".", alpha=0.3)
+		ax2 = ax.twinx()
+		ax2.set_ylim(overlap.min()-(overlap.min()/10.0),overlap.max()-(overlap.max()/10.0))
+		ov = ax2.scatter(x_axis,overlap,c="k",marker="o")
+		ax2.set_ylabel("Overlap (# of pixels)")
+
+		ax.legend(sc+ov,('Time','Overlap'))
+	else:
+		ax.legend(sc, ('Time'))
 
 	cbar = plt.colorbar(sc,use_gridspec=True)
 	cbar.set_label("Number of threads per core")
@@ -68,6 +73,8 @@ def makePlot(data,directory,xlog=True,ylog=False):
 		ax.set_xscale('log')
 	if ylog:
 		ax.set_yscale('log')
+	if ovlog: #overlap log
+		ax2.set_yscale('log')
 
 	ax.grid(True)
 
