@@ -56,7 +56,7 @@ def makePlot(data,directory,xlog=True,ylog=False):
 
 	sc = ax.scatter(x_axis,y_axis,c=threads,marker="+",norm=pltlib.colors.LogNorm())	
 	if mode==4:
-		ov = ax.scatter(x_axis,overlap,c="k",marker="o")
+		pass#ov = ax.scatter(x_axis,overlap,c="k",marker=".", alpha=0.3)
 
 	cbar = plt.colorbar(sc,use_gridspec=True)
 	cbar.set_label("Number of threads per core")
@@ -71,7 +71,7 @@ def makePlot(data,directory,xlog=True,ylog=False):
 
 	ax.grid(True)
 
-	title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test + regular write'}[mode]
+	title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test + regular write',4:'Overlap'}[mode]
 
 	plt.title("Fractal generation ["+title_identifier+"]\nDimensions: "+str(dimensions)+"\nZoom: "+str(zoom))
 	plt.tight_layout()
