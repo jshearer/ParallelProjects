@@ -59,9 +59,9 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False):
 		ov = ax2.scatter(x_axis,overlap,c="k",marker="o")
 		ax2.set_ylabel("Overlap (# of pixels)")
 
-		ax.legend(sc+ov,('Time','Overlap'))
+		ax.legend((sc,ov),('Time','Overlap'),scatterpoints=4,loc="upper right",ncols=1)
 	else:
-		ax.legend(sc, ('Time'))
+		ax.legend((sc), ('Time'),scatterpoints=4,loc="upper right",ncols=1)
 
 	cbar = plt.colorbar(sc,use_gridspec=True)
 	cbar.set_label("Number of threads per core")
