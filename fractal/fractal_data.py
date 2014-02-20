@@ -131,8 +131,7 @@ def extractCols(nExec):
 	cores   = []
 	times   = []
 	threads = []
-	if meta[0]['mode']==4:
-		overlap = []
+	overlap = []
 
 	data = data_file.getNode("/execSets/"+str(nExec)+"/data")
 
