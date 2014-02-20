@@ -126,9 +126,13 @@ def extractCols(nExec):
 	init()
 	global data_file
 
+	meta = data_file.getNode("/execSets/"+str(nExec)+"/meta")
+
 	cores   = []
 	times   = []
 	threads = []
+	if meta[0]['mode']==4:
+		overlap = []
 
 	data = data_file.getNode("/execSets/"+str(nExec)+"/data")
 
@@ -136,14 +140,14 @@ def extractCols(nExec):
 		cores.append(execution['block_x']*execution['block_y'])
 		threads.append(execution['thread_x']*execution['thread_y'])
 		times.append(execution['time'])
-
-	meta = data_file.getNode("/execSets/"+str(nExec)+"/meta")
+		if meta[0]['mode']==4:
+			overlap.append(execution['overlap'])
 
 	iters = 0
 	if 'iterations' in meta[0]:
 		iters = meta[0]['iterations']
 	
-	return (cores,times,threads,meta[0]['zoom'],meta[0]['mode'],(meta[0]['dimensions_x'],meta[0]['dimensions_y']),iters,nExec)
+	return (cores,times,threads,meta[0]['zoom'],meta[0]['mode'],(meta[0]['dimensions_x'],meta[0]['dimensions_y']),iters,nExec,overlap)
 
 
 def getGroup():

@@ -22,6 +22,10 @@ def makePlot(data,directory,xlog=True,ylog=False):
 	threads = np.array(threads,dtype=np.float)
 	cores = np.array(cores,dtype=np.float)
 	times = np.array(times,dtype=np.float)
+	if mode==4:
+		overlap = np.array(data[8],dtype=np.float)
+		overlap = overlap/overlap.max()
+		overlap = overlap * times.max() #scale overlap to same scale as times
 ###############################################
 #	threads = threads / threads.max()
 #	threads = np.log10(threads)
@@ -51,6 +55,8 @@ def makePlot(data,directory,xlog=True,ylog=False):
 	ax.set_ylim([y_axis.min()-(y_axis.min()/10.0),y_axis.max()+(y_axis.max()/10.0)])
 
 	sc = ax.scatter(x_axis,y_axis,c=threads,marker="+",norm=pltlib.colors.LogNorm())	
+	if mode==4:
+		ov = ax.scatter(x_axis,overlap,c="k",marker="o")
 
 	cbar = plt.colorbar(sc,use_gridspec=True)
 	cbar.set_label("Number of threads per core")
