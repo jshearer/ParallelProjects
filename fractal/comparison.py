@@ -29,14 +29,17 @@ def runComparison():
 				[1]
 	}
 
-	print "Mode 0:"
-	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=0)
-	print "Mode 1:"
-	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=1)
-	print "Mode 2:"
-	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=2)
-	print "Mode 3:"
-	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=3)
+#	print "Mode 0:"
+#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=0)
+#	print "Mode 1:"
+#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=1)
+#	print "Mode 2:"
+#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=2)
+#	print "Mode 3:"
+#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=3)
+
+	print "Overlap (mode 4):"
+	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=4)
 
 #	print "Inserted into index: "+str(index)
 #	data = fractal_data.extractCols(index)

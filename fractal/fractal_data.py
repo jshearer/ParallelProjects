@@ -77,7 +77,7 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=
 					
 					thread = (t_x,t_y,1)
 					if overlap:
-						time,result = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
+						result,time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode,returnResult=True)
 						data.row['overlap'] = calculateOverlap(result)
 					else:
 						time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
