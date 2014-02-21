@@ -48,7 +48,7 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False):
 	
 	fig = plt.figure(figsize = (12,7),dpi=350)
 
-	gspec = gridspec.GridSpec(1,3,width_ratios=[30,2,2])
+	gspec = gridspec.GridSpec(1,3,width_ratios=[30,4,1])
 
 	ax = plt.subplot(gspec[0])
 
@@ -56,32 +56,34 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False):
 	#ax.set_ylim([-(y_axis.min()/10.0),y_axis.max()+(y_axis.max()/10.0)])
 
 	sc = ax.scatter(x_axis,y_axis,c=threads,marker="+",norm=pltlib.colors.LogNorm())	
-	if mode==4:
-#		ax2 = ax.twinx()
-#		ax2.set_ylim(overlap.min()-(overlap.min()/10.0),overlap.max()-(overlap.max()/10.0))
-#		ov = ax2.scatter(x_axis,overlap,c="k",marker="o")
-#		ax2.set_ylabel("Overlap (# of pixels)")
-
-#		ax.legend((sc,ov),('Time','Overlap'),scatterpoints=4,loc="upper right")
-		pass
-	else:
-		ax.legend((sc), ('Time'),scatterpoints=4,loc="upper right")
-	
 	cb_ax = plt.subplot(gspec[2])
 
 	cbar = fig.colorbar(sc, cax=cb_ax)
 	cbar.set_label("Number of threads per core")
 
+	if mode==4:
+		ax2 = ax.twinx()
+		ax2.ticklabel_format(style="sci",scilimits=(0,0),useOffset=False)
+		print overlap.min(), overlap.max()
+		ov = ax2.scatter(x_axis,overlap,c="k",marker="o",alpha=0.2)
+		ax2.set_ylabel("Overlap (# of pixels)")
+		ax2.set_ylim(overlap.min(),overlap.max())
+		ax.legend((sc,ov),('Time','Overlap'),scatterpoints=4,loc="upper right")
+		pass
+	else:
+		ax.legend((sc,), ('Time',),scatterpoints=4,loc="upper right")
+	
 	ax.set_ylabel("Time to compute "+("log10" if ylog else "")+"(seconds)")
 	ax.set_xlabel("Number of CUDA cores"+(", log10" if xlog else ""))
 
 	if xlog:
 		ax.set_xscale('log')
+		if mode==4:
+			ax2.set_xscale('log')
 	if ylog:
 		ax.set_yscale('log')
-#	if ovlog: #overlap log
-#		ax2.set_yscale('log')
-
+		if mode==4:
+			ax2.set_yscale('log')
 	ax.grid(True)
 	ax.axis('tight')
 	title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test + regular write',4:'Overlap'}[mode]
