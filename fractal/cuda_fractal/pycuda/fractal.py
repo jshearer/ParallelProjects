@@ -118,12 +118,6 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	ppc[0,0] = 0
 	ppc_ptr = numpy.intp(ppc.base.get_device_pointer()) #pagelocked memory counter, device pointer to
 	#End progress reporting
-
-	if debug:
-		print "Chunk Size: "+str(chunkSize)
-		print "Position: "+str(position)
-		print "Thread Dimensions: "+str(thread)
-		print "Thread Size: "+str([chunkSize[0]/thread[0],chunkSize[1]/thread[1]])
 	
 	err1,err2=False 
 
@@ -134,6 +128,13 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 		px_per_block = numpy.array(px_per_block,dtype=numpy.int32)
 		px_per_thread = numpy.array(px_per_thread,dtype=numpy.int32)
 		#Specifying in 1d, calculate 2d.
+
+	if debug:
+		print "Position: "+str(position)
+		print "Thread Dimensions: "+str(thread)
+		print "Block Dimensions: "+str(block)
+		print "Pixels per block: "+str(px_per_block)
+		print "Pixels per thread: "+str(px_per_thread)
 
 	#Copy parameters over to device
 	posit = In(position)
