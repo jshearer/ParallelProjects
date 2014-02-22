@@ -9,15 +9,8 @@ class Execution(tab.IsDescription):
 	thread_x	  = tab.Int32Col()
 	thread_y	  = tab.Int32Col()
 	time		  = tab.Float64Col()
-
-class MetaData(tab.IsDescription):
-	pos_x 		  = tab.Float64Col()
-	pos_y 		  = tab.Float64Col()
-	zoom  		  = tab.Float32Col()
-	dimensions_x  = tab.Int32Col()
-	dimensions_y  = tab.Int32Col()
-	mode		  = tab.UInt8Col()
-	iterations    = tab.Int32Col()
+	err1		  = tab.StringCol()
+	err2 		  = tab.StringCol()
 
 class OverlapExecution(tab.IsDescription):
 	index		  = tab.Int32Col()
@@ -27,6 +20,17 @@ class OverlapExecution(tab.IsDescription):
 	thread_y	  = tab.Int32Col()
 	overlap		  = tab.Int64Col()
 	time		  = tab.Float64Col()
+	err1		  = tab.StringCol()
+	err2 		  = tab.StringCol()
+
+class MetaData(tab.IsDescription):
+	pos_x 		  = tab.Float64Col()
+	pos_y 		  = tab.Float64Col()
+	zoom  		  = tab.Float32Col()
+	dimensions_x  = tab.Int32Col()
+	dimensions_y  = tab.Int32Col()
+	mode		  = tab.UInt8Col()
+	iterations    = tab.Int32Col()
 
 def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=100):
 	from call_utils import callCUDA
@@ -76,18 +80,21 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=
 				for t_y in threadData[1]:
 					
 					thread = (t_x,t_y,1)
-					if overlap:
-						result,time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode,returnResult=True)
+					
+					result,time,err1,err2 = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
+
+					if overlap:	
 						data.row['overlap'] = calculateOverlap(result)
-					else:
-						time = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
+
 					data.row['time'] = time
 					data.row['index'] = len(data)
 					data.row['block_x'] = x
 					data.row['block_y'] = y
 					data.row['thread_x'] = t_x
 					data.row['thread_y'] = t_y
-
+					data.row['err1'] = err1
+					data.row['err2'] = err2
+					
 					if overlap:
 						print "\t"+str(block)+", "+str(thread)+": "+str(time)+", Overlap: "+str(data.row['overlap'])
 					else:

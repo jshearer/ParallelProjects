@@ -21,9 +21,17 @@ from pycuda.compiler import SourceModule
 
 genChunk = SourceModule("""
 #include <cuComplex.h>
-__global__ void gen(int size[2],float position[2],float *zoom,int *iterations,int *result, int* progress,int action)
+
+__device__ int map2Dto1D(int x, int y,int x_width)
+{
+	return x+(y*x_width);	
+}
+
+__global__ void gen(int px_per_block[2],int px_per_thread[2],int size[2],float position[2],float *zoom,int *iterations,int *result, int* progress,int action)
 { 	//blockDim = size of threads per block
 	//gridDim = size of blocks
+
+	//int size[2] argument is just to make sure we don't fall off the edge and crash the entire machine...
 
 	//actions: 0 = write
 	//	   1 = read+write
@@ -31,8 +39,8 @@ __global__ void gen(int size[2],float position[2],float *zoom,int *iterations,in
 	//	   3 = atomicAddTest
 	//	   4 = overlapMap
 
-	int startx = (blockIdx.x*size[0])+(((float)threadIdx.x/blockDim.x)*size[0]);
-	int starty = (blockIdx.y*size[1])+(((float)threadIdx.y/blockDim.y)*size[1]);
+	int startx = (blockIdx.x*px_per_block[0])+(threadIdx.x*px_per_thread[0])
+	int startx = (blockIdx.y*px_per_block[1])+(threadIdx.y*px_per_thread[1])
 
 	float t_x, t_y;
 	int i, x, y;
@@ -42,8 +50,8 @@ __global__ void gen(int size[2],float position[2],float *zoom,int *iterations,in
 
 	float z_real, z_imag;
 
-	for(x = startx; x < (blockIdx.x*size[0])+((((float)(threadIdx.x+1))/blockDim.x)*size[0]); x++){
-		for(y = starty; y < (blockIdx.y*size[1])+((((float)(threadIdx.y+1))/blockDim.y)*size[1]); y++){
+	for(x = startx; x < startx+px_per_thread[0]; x++){
+		for(y = starty; y < starty+px_per_thread[1]; y++){
 			if(action==3)
 			{
 				atomicAdd(progress,1);
@@ -57,7 +65,7 @@ __global__ void gen(int size[2],float position[2],float *zoom,int *iterations,in
 			z_unchanging.y = t_y; //optomize this with pointer magic?
 			if(action==4) //generate overlap map
 			{
-				result[x+(y*size[0]*gridDim.x)] = result[x+(y*size[0]*gridDim.x)] + 1;
+				result[map2Dto1D(x,y,size[0])] = result[map2Dto1D(x,y,size[0])] + 1;
 			} else
 			{
 				for(i = 0; i<(*iterations) + 1; i++){
@@ -68,10 +76,10 @@ __global__ void gen(int size[2],float position[2],float *zoom,int *iterations,in
 					if((z_real*z_real + z_imag*z_imag)>4){
 						if(action==0)//act cool, do the default
 						{
-							result[x+(y*size[0]*gridDim.x)] = i;
+							result[map2Dto1D(x,y,size[0]) = i;
 						} else if(action==1)// read+write test
 						{
-							result[x+(y*size[0]*gridDim.x)] = result[x+(y*size[0]*gridDim.x)] + 1;
+							result[map2Dto1D(x,y,size[0]) = result[map2Dto1D(x,y,size[0])] + 1;
 						}//else if action==2, do nothing
 						break;
 					}
@@ -92,10 +100,9 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	#Force progress checking to False, otherwise it'll go on forever with reporting turned off in the kernel
 	report = False
 	zoom = zoom * scale
-	dimensions = [dimensions[0]*scale,dimensions[1]*scale]
+	dimensions = numpy.array([dimensions[0]*scale,dimensions[1]*scale],dtype=numpy.int32)
 	position = [position[0]*scale*zoom,position[1]*scale*zoom]
 
-	chunkSize = numpy.array([dimensions[0]/block[0],dimensions[1]/block[1]],dtype=numpy.int32)
 	zoom = numpy.float32(zoom)
 	iterations = numpy.int32(iterations)
 	blockDim = numpy.array([block[0],block[1]],dtype=numpy.int32)
@@ -119,14 +126,24 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 		print "Block Dimensions: "+str(blockDim)
 		print "Thread Dimensions: "+str(thread)
 		print "Thread Size: "+str([chunkSize[0]/thread[0],chunkSize[1]/thread[1]])
+	err1,err2=False
+	#For block, grid calculation:
+	if (type(block) == type(1)) and (type(thread) == type(1)):
+		import utils
+		block, thread, px_per_block, px_per_thread, err1, err2 = utils.calcParameters(block,thread,dimensions,silent=silent)
+		px_per_block = numpy.array(px_per_block,dtype=numpy.int32)
+		px_per_thread = numpy.array(px_per_thread,dtype=numpy.int32)
+		#Specifying in 1d, calculate 2d. 
 
 	#Copy parameters over to device
-	chunkS = In(chunkSize)
 	posit = In(position)
 	zoo = In(zoom)
 	iters = In(iterations)
 	res = In(result)
 	act = numpy.int32(action)
+	blockpx = In(px_per_block)
+	threadpx = In(px_per_thread)
+	dims = In(dimensions)
 
 	if not silent:
 		print("Calling CUDA function. Starting timer. progress starting at: "+str(ppc[0,0]))
@@ -135,7 +152,7 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	end = cuda.Event()
 	start.record()
 	
-	genChunk(chunkS, posit, zoo, iters, res, ppc_ptr, act, block=thread, grid=block)
+	genChunk(blockpx, threadpx, dims, posit, zoo, iters, res, ppc_ptr, act, block=thread, grid=block)
 	
 	end.record()
 	cuda.Context.synchronize()
@@ -154,4 +171,4 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 		
 	if action!=4:  #not in overlap mode
 		result[result.shape[0]/2,result.shape[1]/2]=iterations+1 #mark center of image
-	return result,seconds
+	return result,seconds,err1,err2
