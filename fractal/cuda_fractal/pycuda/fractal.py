@@ -40,7 +40,7 @@ __global__ void gen(int px_per_block[2],int px_per_thread[2],int size[2],float p
 	//	   4 = overlapMap
 
 	int startx = (blockIdx.x*px_per_block[0])+(threadIdx.x*px_per_thread[0]);
-	int startx = (blockIdx.y*px_per_block[1])+(threadIdx.y*px_per_thread[1]);
+	int starty = (blockIdx.y*px_per_block[1])+(threadIdx.y*px_per_thread[1]);
 
 	float t_x, t_y;
 	int i, x, y;
