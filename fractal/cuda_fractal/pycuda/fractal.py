@@ -76,10 +76,10 @@ __global__ void gen(int px_per_block[2],int px_per_thread[2],int size[2],float p
 					if((z_real*z_real + z_imag*z_imag)>4){
 						if(action==0)//act cool, do the default
 						{
-							result[map2Dto1D(x,y,size[0]) = i;
+							result[map2Dto1D(x,y,size[0])] = i;
 						} else if(action==1)// read+write test
 						{
-							result[map2Dto1D(x,y,size[0]) = result[map2Dto1D(x,y,size[0])] + 1;
+							result[map2Dto1D(x,y,size[0])] = result[map2Dto1D(x,y,size[0])] + 1;
 						}//else if action==2, do nothing
 						break;
 					}
