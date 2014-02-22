@@ -105,7 +105,6 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 
 	zoom = numpy.float32(zoom)
 	iterations = numpy.int32(iterations)
-	blockDim = numpy.array([block[0],block[1]],dtype=numpy.int32)
 	result = numpy.zeros(dimensions,dtype=numpy.int32)
 
 	#Center position
@@ -123,17 +122,18 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	if debug:
 		print "Chunk Size: "+str(chunkSize)
 		print "Position: "+str(position)
-		print "Block Dimensions: "+str(blockDim)
 		print "Thread Dimensions: "+str(thread)
 		print "Thread Size: "+str([chunkSize[0]/thread[0],chunkSize[1]/thread[1]])
-	err1,err2=False
+	
+	err1,err2=False 
+
 	#For block, grid calculation:
 	if (type(block) == type(1)) and (type(thread) == type(1)):
 		import utils
 		block, thread, px_per_block, px_per_thread, err1, err2 = utils.calcParameters(block,thread,dimensions,silent=silent)
 		px_per_block = numpy.array(px_per_block,dtype=numpy.int32)
 		px_per_thread = numpy.array(px_per_thread,dtype=numpy.int32)
-		#Specifying in 1d, calculate 2d. 
+		#Specifying in 1d, calculate 2d.
 
 	#Copy parameters over to device
 	posit = In(position)
