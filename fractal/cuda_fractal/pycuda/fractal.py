@@ -119,7 +119,7 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	ppc_ptr = numpy.intp(ppc.base.get_device_pointer()) #pagelocked memory counter, device pointer to
 	#End progress reporting
 	
-	err1,err2=False 
+	err1=err2=False 
 
 	#For block, grid calculation:
 	if (type(block) == type(1)) and (type(thread) == type(1)):
@@ -127,6 +127,11 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 		block, thread, px_per_block, px_per_thread, err1, err2 = utils.calcParameters(block,thread,dimensions,silent=silent)
 		px_per_block = numpy.array(px_per_block,dtype=numpy.int32)
 		px_per_thread = numpy.array(px_per_thread,dtype=numpy.int32)
+		block = numpy.append(block,1)
+		thread = numpy.append(thread,1)
+
+		block = tuple([numpy.asscalar(block[i]) for i in range(len(block))])
+		thread = tuple([numpy.asscalar(thread[i]) for i in range(len(thread))])
 		#Specifying in 1d, calculate 2d.
 
 	if debug:

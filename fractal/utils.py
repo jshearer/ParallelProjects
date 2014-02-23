@@ -1,4 +1,5 @@
 import numpy as np
+
 def smallestPerim(val):
 	factors = [(i, val / i) for i in range(1, int(val**0.5)+1) if val % i == 0]
 
@@ -10,7 +11,7 @@ def smallestPerim(val):
 		elif (factor[0]+factor[1])<(best[0]+best[1]):
 			best = factor
 
-	return np.array(best)
+	return np.array(best, dtype=np.int32)
 
 def calcParameters(blocks,threads,dimensions,silent=False):
 	bestBlocks = smallestPerim(blocks)
@@ -42,4 +43,3 @@ def calcParameters(blocks,threads,dimensions,silent=False):
 	return bestBlocks,bestThreads,px_per_block,px_per_thread,too_much,wrong
 
 
-calcParameters(200,100,[100,100])	
