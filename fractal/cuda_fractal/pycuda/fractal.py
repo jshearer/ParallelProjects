@@ -96,7 +96,7 @@ def In(thing):
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
 
-def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=True):
+def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=True,px_per_core=False,px_per_thread=False):
 	#Force progress checking to False, otherwise it'll go on forever with reporting turned off in the kernel
 	report = False
 	zoom = zoom * scale
@@ -124,15 +124,20 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	#For block, grid calculation:
 	if (type(block) == type(1)) and (type(thread) == type(1)):
 		import utils
-		block, thread, px_per_block, px_per_thread, err1, err2 = utils.calcParameters(block,thread,dimensions,silent=silent)
-		px_per_block = numpy.array(px_per_block,dtype=numpy.int32)
-		px_per_thread = numpy.array(px_per_thread,dtype=numpy.int32)
-		block = numpy.append(block,1)
-		thread = numpy.append(thread,1)
-
+		#(block, thread, px_per_block, px_per_thread, err1, err2)
+		params = utils.calcParameters(block,thread,dimensions,silent=silent)
+		px_per_block = px_per_block or numpy.array(params[2],dtype=numpy.int32)
+		px_per_thread = px_per_thread or numpy.array(params[3],dtype=numpy.int32)
+		block = numpy.append(params[0],1)
+		thread = numpy.append(params[1],1)
+		err1 = params[4]
+		err2 = params[5]
 		block = tuple([numpy.asscalar(block[i]) for i in range(len(block))])
 		thread = tuple([numpy.asscalar(thread[i]) for i in range(len(thread))])
-		#Specifying in 1d, calculate 2d.
+		
+	else:
+		px_per_block = px_per_block or numpy.array(dimensions) / numpy.array(block)
+		px_per_thread = px_per_thread or px_per_block / numpy.array(thread)
 
 	if debug:
 		print "Position: "+str(position)
