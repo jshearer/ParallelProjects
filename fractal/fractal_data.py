@@ -6,8 +6,10 @@ class Execution(tab.IsDescription):
 	index		  = tab.Int32Col()
 	block_x		  = tab.Int32Col()
 	block_y		  = tab.Int32Col()
+	blocks		  = tab.Int32Col()
 	thread_x	  = tab.Int32Col()
 	thread_y	  = tab.Int32Col()
+	threads		  = tab.Int32Col()
 	time		  = tab.Float64Col()
 	err1		  = tab.StringCol()
 	err2 		  = tab.StringCol()
@@ -16,8 +18,10 @@ class OverlapExecution(tab.IsDescription):
 	index		  = tab.Int32Col()
 	block_x		  = tab.Int32Col()
 	block_y		  = tab.Int32Col()
+	blocks		  = tab.Int32Col()
 	thread_x	  = tab.Int32Col()
 	thread_y	  = tab.Int32Col()
+	threads		  = tab.Int32Col()
 	overlap		  = tab.Int64Col()
 	time		  = tab.Float64Col()
 	err1		  = tab.StringCol()
@@ -32,7 +36,7 @@ class MetaData(tab.IsDescription):
 	mode		  = tab.UInt8Col()
 	iterations    = tab.Int32Col()
 
-def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=100):
+def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
 	from call_utils import callCUDA
 	#Only compile the function when we need to
 	overlap = (mode==4)
@@ -68,40 +72,31 @@ def cudaCollect(position,zoom,dimensions,blockData,threadData,mode=0,iterations=
 	else:
 		data = data_file.createTable(grp,"data",Execution,"Real data")
 
-	#[0] = start,
-	#[1] = end,
-	#[2] = stride
-	for x in blockData[0]:
-		for y in blockData[1]:
+	for block in execData['blocks']:
+		for thread in execData['threads']:		
+			result,time,err1,err2,block_dim,thread_dim = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
 
-			block = (x,y,1)
+			if overlap:	
+				data.row['overlap'] = calculateOverlap(result)
 
-			for t_x in threadData[0]:
-				for t_y in threadData[1]:
-					
-					thread = (t_x,t_y,1)
-					
-					result,time,err1,err2 = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
+			data.row['time'] = time
+			data.row['index'] = len(data)
+			data.row['block_x'] = block_dim[0]
+			data.row['block_y'] = block_dim[1]
+			data.row['block'] = block
+			data.row['thread_x'] = thread_dim[0]
+			data.row['thread_y'] = thread_dim[1]
+			data.row['thread'] = thread
+			data.row['err1'] = err1
+			data.row['err2'] = err2
+			
+			if overlap:
+				print "\t"+str(block)+", "+str(thread)+": "+str(time)+", Overlap: "+str(data.row['overlap'])
+			else:
+				print "\t"+str(block)+", "+str(thread)+": "+str(time)
 
-					if overlap:	
-						data.row['overlap'] = calculateOverlap(result)
-
-					data.row['time'] = time
-					data.row['index'] = len(data)
-					data.row['block_x'] = x
-					data.row['block_y'] = y
-					data.row['thread_x'] = t_x
-					data.row['thread_y'] = t_y
-					data.row['err1'] = err1
-					data.row['err2'] = err2
-					
-					if overlap:
-						print "\t"+str(block)+", "+str(thread)+": "+str(time)+", Overlap: "+str(data.row['overlap'])
-					else:
-						print "\t"+str(block)+", "+str(thread)+": "+str(time)
-
-					data.row.append()
-					data.flush()
+			data.row.append()
+			data.flush()
 	return nExec
 
 def calculateOverlap(result):
@@ -135,17 +130,19 @@ def extractCols(nExec):
 
 	meta = data_file.getNode("/execSets/"+str(nExec)+"/meta")
 
-	cores   = []
+	blocks  = []
 	times   = []
 	threads = []
 	overlap = []
+	err 	= []
 
 	data = data_file.getNode("/execSets/"+str(nExec)+"/data")
 
 	for execution in data:
-		cores.append(execution['block_x']*execution['block_y'])
-		threads.append(execution['thread_x']*execution['thread_y'])
+		cores.append(execution['blocks'])
+		threads.append(execution['threads'])
 		times.append(execution['time'])
+		err.append((1 if execution['err1'] != "False" else 0)+(1 if execution['err2'] != "False" else 0))
 		if meta[0]['mode']==4:
 			overlap.append(execution['overlap'])
 
@@ -153,7 +150,7 @@ def extractCols(nExec):
 	if 'iterations' in meta[0]:
 		iters = meta[0]['iterations']
 	
-	return (cores,times,threads,meta[0]['zoom'],meta[0]['mode'],(meta[0]['dimensions_x'],meta[0]['dimensions_y']),iters,nExec,overlap)
+	return (cores,times,threads,meta[0]['zoom'],meta[0]['mode'],(meta[0]['dimensions_x'],meta[0]['dimensions_y']),iters,nExec,overlap,err)
 
 
 def getGroup():

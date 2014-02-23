@@ -13,7 +13,11 @@ def compareParams(position, zoom, dimensions, name, iterations=100,save=True):
 
 def runComparison():
 
-	bData = {
+	execData = {'blocks':range(1,10)+range(10,100,10)+range(100,500,50)+[512],
+				'threads':range(1,10)+range(10,100,10)+range(100,500,50)+[512]}
+
+
+bData = {
 			0: #x
 				[1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240,250,300,350,400,450,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000],
 				#[50,100,200],
@@ -29,17 +33,17 @@ def runComparison():
 				[1]
 	}
 
-#	print "Mode 0:"
-#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=0)
-#	print "Mode 1:"
-#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=1)
-#	print "Mode 2:"
-#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=2)
-#	print "Mode 3:"
-#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=3)
+	print "Mode 0:"
+	fractal_data.cudaCollect([0,0],250,[512,512],bData,tData,mode=0)
+	print "Mode 1:"
+	fractal_data.cudaCollect([0,0],250,[512,512],bData,tData,mode=1)
+	print "Mode 2:"
+	fractal_data.cudaCollect([0,0],250,[512,512],bData,tData,mode=2)
+	print "Mode 3:"
+	fractal_data.cudaCollect([0,0],250,[512,512],bData,tData,mode=3)
 
 	print "Overlap (mode 4):"
-	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=4)
+	fractal_data.cudaCollect([0,0],250,[512,512],bData,tData,mode=4)
 
 #	print "Inserted into index: "+str(index)
 #	data = fractal_data.extractCols(index)

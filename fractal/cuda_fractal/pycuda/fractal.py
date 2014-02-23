@@ -177,4 +177,4 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 		
 	if action!=4:  #not in overlap mode
 		result[result.shape[0]/2,result.shape[1]/2]=iterations+1 #mark center of image
-	return result,seconds,err1,err2
+	return result,seconds,err1,err2,block,thread
