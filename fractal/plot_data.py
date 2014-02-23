@@ -78,11 +78,11 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False):
 
 	if xlog:
 		ax.set_xscale('log')
-		if mode==4:
+		if mode==4 and ovlog:
 			ax2.set_xscale('log')
 	if ylog:
 		ax.set_yscale('log')
-		if mode==4:
+		if mode==4 and ovlog:
 			ax2.set_yscale('log')
 	ax.grid(True)
 	ax.axis('tight')
