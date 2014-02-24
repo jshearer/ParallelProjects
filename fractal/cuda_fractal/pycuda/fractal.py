@@ -118,23 +118,20 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	ppc[0,0] = 0
 	ppc_ptr = numpy.intp(ppc.base.get_device_pointer()) #pagelocked memory counter, device pointer to
 	#End progress reporting
-	
-	err1=err2=False 
 
 	#For block, grid calculation:
 	if (type(block) == type(1)) and (type(thread) == type(1)):
 		import utils
-		#(block, thread, px_per_block, px_per_thread, err1, err2)
+		#(block, thread, px_per_block, px_per_thread)
 		params = utils.calcParameters(block,thread,dimensions,silent=silent)
 		px_per_block = px_per_block or numpy.array(params[2],dtype=numpy.int32)
 		px_per_thread = px_per_thread or numpy.array(params[3],dtype=numpy.int32)
 		block = numpy.append(params[0],1)
 		thread = numpy.append(params[1],1)
-		err1 = params[4]
-		err2 = params[5]
+
 		block = tuple([numpy.asscalar(block[i]) for i in range(len(block))])
 		thread = tuple([numpy.asscalar(thread[i]) for i in range(len(thread))])
-		
+
 	else:
 		px_per_block = px_per_block or numpy.array(dimensions) / numpy.array(block)
 		px_per_thread = px_per_thread or px_per_block / numpy.array(thread)
@@ -182,4 +179,4 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 		
 	if action!=4:  #not in overlap mode
 		result[result.shape[0]/2,result.shape[1]/2]=iterations+1 #mark center of image
-	return result,seconds,err1,err2,block,thread
+	return result,seconds,block,thread

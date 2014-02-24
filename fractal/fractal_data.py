@@ -11,8 +11,6 @@ class Execution(tab.IsDescription):
 	thread_y	  = tab.Int32Col()
 	threads		  = tab.Int32Col()
 	time		  = tab.Float64Col()
-	err1		  = tab.StringCol(80)
-	err2 		  = tab.StringCol(80)
 
 class OverlapExecution(tab.IsDescription):
 	index		  = tab.Int32Col()
@@ -24,8 +22,6 @@ class OverlapExecution(tab.IsDescription):
 	threads		  = tab.Int32Col()
 	overlap		  = tab.Int64Col()
 	time		  = tab.Float64Col()
-	err1		  = tab.StringCol(80)
-	err2 		  = tab.StringCol(80)
 
 class MetaData(tab.IsDescription):
 	pos_x 		  = tab.Float64Col()
@@ -74,8 +70,14 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
 
 	for block in execData['blocks']:
 		for thread in execData['threads']:		
-			result,time,err1,err2,block_dim,thread_dim = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
-
+			try:
+				result,time,block_dim,thread_dim = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
+			except ValueError:
+				if overlap:
+					print "BAD \t"+str(block)+", "+str(thread)+": "+str(time)+", Overlap: "+str(data.row['overlap'])
+				else:
+					print "BAD \t"+str(block)+", "+str(thread)+": "+str(time)
+			
 			if overlap:	
 				data.row['overlap'] = calculateOverlap(result)
 
@@ -87,13 +89,7 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
 			data.row['thread_x'] = thread_dim[0]
 			data.row['thread_y'] = thread_dim[1]
 			data.row['threads'] = thread
-			data.row['err1'] = err1
-			data.row['err2'] = err2
 			
-			if overlap:
-				print "\t"+str(block)+", "+str(thread)+": "+str(time)+", Overlap: "+str(data.row['overlap'])
-			else:
-				print "\t"+str(block)+", "+str(thread)+": "+str(time)
 
 			data.row.append()
 			data.flush()
@@ -134,7 +130,6 @@ def extractCols(nExec):
 	times   = []
 	threads = []
 	overlap = []
-	err 	= []
 
 	data = data_file.getNode("/execSets/"+str(nExec)+"/data")
 
@@ -142,7 +137,6 @@ def extractCols(nExec):
 		blocks.append(execution['blocks'])
 		threads.append(execution['threads'])
 		times.append(execution['time'])
-		err.append((1 if execution['err1'] != "False" else 0)+(1 if execution['err2'] != "False" else 0))
 		if meta[0]['mode']==4:
 			overlap.append(execution['overlap'])
 
@@ -150,7 +144,7 @@ def extractCols(nExec):
 	if 'iterations' in meta[0]:
 		iters = meta[0]['iterations']
 	
-	return (blocks,times,threads,meta[0]['zoom'],meta[0]['mode'],(meta[0]['dimensions_x'],meta[0]['dimensions_y']),iters,nExec,overlap,err)
+	return (blocks,times,threads,meta[0]['zoom'],meta[0]['mode'],(meta[0]['dimensions_x'],meta[0]['dimensions_y']),iters,nExec,overlap)
 
 
 def getGroup():
