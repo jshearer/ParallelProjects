@@ -126,7 +126,7 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	if (type(block) == type(1)) and (type(thread) == type(1)):
 		import utils
 		#(block, thread, px_per_block, px_per_thread)
-		params = utils.calcParameters(block,thread,dimensions,silent=silent)
+		params = utils.genParameters(block,thread,dimensions,silent=silent)
 		if not px_per_block:
 			px_per_block = numpy.array(params[2],dtype=numpy.int32)
 		if not px_per_thread:
@@ -146,7 +146,7 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	px_per_block = numpy.asarray(px_per_block).astype(numpy.int32)
 	px_per_thread = numpy.asarray(px_per_thread).astype(numpy.int32)
 	#pdb.set_trace()
-	print "px_per_block, px_per_thread: "+str((px_per_block,px_per_thread))
+
 	if debug:
 		print "Position: "+str(position)
 		print "Thread Dimensions: "+str(thread)

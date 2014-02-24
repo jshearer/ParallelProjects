@@ -13,20 +13,16 @@ def compareParams(position, zoom, dimensions, name, iterations=100,save=True):
 
 def runComparison():
 
-	execData = {'blocks':range(1,10)+range(10,100,10)+range(100,500,50)+[512],
-		    'threads':range(1,10)+range(10,100,10)+range(100,500,50)+[512]}
+	execData = {'blocks':range(1,2048),
+		    'threads':range(1,1024)}
+	
+	position = [-1.3,0]
+	dimensions = [2000,1000]
+	zoom = 900
 
-	print "Mode 0:"
-	fractal_data.cudaCollect([0,0],250,[512,512],execData,mode=0)
-	print "Mode 1:"
-	fractal_data.cudaCollect([0,0],250,[512,512],execData,mode=1)
-	print "Mode 2:"
-	fractal_data.cudaCollect([0,0],250,[512,512],execData,mode=2)
-	print "Mode 3:"
-	fractal_data.cudaCollect([0,0],250,[512,512],execData,mode=3)
-
-	print "Overlap (mode 4):"
-	fractal_data.cudaCollect([0,0],250,[512,512],execData,mode=4)
+	for mode in range(0,5):
+		print "Mode "+str(mode)+":"
+		fractal_data.cudaCollect(position,zoom,dimensions,execData,mode=mode)
 
 #	print "Inserted into index: "+str(index)
 #	data = fractal_data.extractCols(index)

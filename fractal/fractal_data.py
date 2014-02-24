@@ -73,11 +73,10 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
 			try:
 				result,time,block_dim,thread_dim = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
 			except ValueError:
-				if overlap:
-					print "BAD \t"+str(block)+", "+str(thread)+": "+str(time)+", Overlap: "+str(data.row['overlap'])
-				else:
-					print "BAD \t"+str(block)+", "+str(thread)+": "+str(time)
-			
+				continue
+
+			print "GOOD \t"+str(block)+", "+str(thread)+": "+str(time)
+
 			if overlap:	
 				data.row['overlap'] = calculateOverlap(result)
 
