@@ -19,6 +19,8 @@ import pycuda.driver as cuda
 import pycuda.autoinit
 from pycuda.compiler import SourceModule
 
+import pdb
+
 genChunk = SourceModule("""
 #include <cuComplex.h>
 
@@ -96,7 +98,7 @@ def In(thing):
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
 
-def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=True,px_per_core=False,px_per_thread=False):
+def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=True,px_per_block=False,px_per_thread=False):
 	#Force progress checking to False, otherwise it'll go on forever with reporting turned off in the kernel
 	report = False
 	zoom = zoom * scale
@@ -120,12 +122,15 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	#End progress reporting
 
 	#For block, grid calculation:
+	
 	if (type(block) == type(1)) and (type(thread) == type(1)):
 		import utils
 		#(block, thread, px_per_block, px_per_thread)
 		params = utils.calcParameters(block,thread,dimensions,silent=silent)
-		px_per_block = px_per_block or numpy.array(params[2],dtype=numpy.int32)
-		px_per_thread = px_per_thread or numpy.array(params[3],dtype=numpy.int32)
+		if not px_per_block:
+			px_per_block = numpy.array(params[2],dtype=numpy.int32)
+		if not px_per_thread:
+			px_per_thread = numpy.array(params[3],dtype=numpy.int32)
 		block = numpy.append(params[0],1)
 		thread = numpy.append(params[1],1)
 
@@ -133,9 +138,15 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 		thread = tuple([numpy.asscalar(thread[i]) for i in range(len(thread))])
 
 	else:
-		px_per_block = px_per_block or numpy.array(dimensions) / numpy.array(block)
-		px_per_thread = px_per_thread or px_per_block / numpy.array(thread)
-
+		if not px_per_block:
+			px_per_block = (numpy.array(dimensions) / numpy.array(block))
+		if not px_per_thread:
+			px_per_thread = (px_per_block / numpy.array(thread))
+	
+	px_per_block = numpy.asarray(px_per_block).astype(numpy.int32)
+	px_per_thread = numpy.asarray(px_per_thread).astype(numpy.int32)
+	#pdb.set_trace()
+	print "px_per_block, px_per_thread: "+str((px_per_block,px_per_thread))
 	if debug:
 		print "Position: "+str(position)
 		print "Thread Dimensions: "+str(thread)
