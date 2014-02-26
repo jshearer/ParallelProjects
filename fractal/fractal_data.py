@@ -160,3 +160,5 @@ def init():
 		data_file = tab.openFile(filename,mode='a',title="Fractal timing data")
 		if not ("/execSets" in data_file):
 			data_file.createGroup("/","execSets","Sets of execution with varying position,zoom,dimensions,blockData, or threadData")
+
+init()
