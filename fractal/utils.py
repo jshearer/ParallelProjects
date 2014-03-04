@@ -13,25 +13,25 @@ def genParameters(blocks,threads,dimensions,silent=False):
     if blocks > K20C_BLOCKS:
         raise ValueError("GPU does not have enough blocks")
     if threads > K20C_THREADS:
-         raise ValueError("GPU does not have enough threads per block")
-
-	dimensions = np.array(dimensions)
-	px_total_needed =  dimensions.prod()
-
+        raise ValueError("GPU does not have enough threads per block")
+    
+    dimensions = np.array(dimensions)
+    px_total_needed =  dimensions.prod()
+    
     px_per_thread = px_total_needed / (blocks*threads)
     px_total = px_per_thread  * blocks * threads
-	if px_total != px_total_needed:
+    if px_total != px_total_needed:
         if not silent:
             print "WARNING: Current configuration of blocks and threads results in ",
             print str(px_total) + "/" + str(px_total_needed) + " pixels calculated."
         raise ValueError("Total pixels does not divide evenly across total threads.")
-
+    
     # we might want to try a shape in the middle of each first
-	for bestBlocks in getFactors(blocks):
+    for bestBlocks in getFactors(blocks):
         px_per_block = dimensions/bestBlocks
         if (1-(px_per_block!=0).astype(np.int)).sum()>=1:
             continue
-		for bestThreads in getFactors(threads):
+        for bestThreads in getFactors(threads):
             px_per_thread = px_per_block/bestThreads
             if (1-(px_per_thread!=0).astype(np.int)).sum() < 1: # ==0???, anyway, we found a case, use it!
                 if not silent:
@@ -43,8 +43,8 @@ def genParameters(blocks,threads,dimensions,silent=False):
                     print " = " + str((bestBlocks*bestThreads).prod()) + " total threads."
                     
                 return (bestBlocks,bestThreads,px_per_block,px_per_thread)
-
-
+    
+    
     if not silent:
         print "Combination of blocks, threads, and dimensions does not result in any block, ",
         print "thread dimensions that will reach every pixel. Reconsider."
