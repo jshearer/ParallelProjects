@@ -7,7 +7,7 @@ import matplotlib as pltlib
 import time
 import numpy as np
 
-def makePlot(data,directory,xlog=True,ylog=False,ovlog=False):
+def makePlot(data,directory,xlog=True,ylog=False,ovlog=False, show=False):
 	cores      = data[0]
 	times      = data[1]
 	threads    = data[2]
@@ -92,8 +92,17 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False):
 	plt.tight_layout()
 	
 	plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+	if show: plt.show()
 	
 	print "Saving file now."	
 	with open(directory+"mode_"+str(mode)+"-id"+str(index)+".png",'w') as f:
 		plt.savefig(f)
 	plt.clf()
+
+if __name__ == '__main__':
+	import fractal_data
+#	print "Inserted into index: "+str(index)
+	data = fractal_data.extractCols(5)
+#	print "len cores,times,threads ("+str(len(cores))+", "+str(len(times))+", "+str(len(threads))+")."
+	makePlot(data,"./",ylog=True, show=True)
+	

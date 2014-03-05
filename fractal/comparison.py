@@ -17,7 +17,7 @@ def runComparison():
 		    'threads':range(1,1025)}
 	
 	position = [-1.3,0]
-	dimensions = [2048,1024]
+	dimensions = [2000,1000]
 	zoom = 900
 
 	for mode in range(0,5):
