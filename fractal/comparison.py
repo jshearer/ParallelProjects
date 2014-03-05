@@ -13,11 +13,11 @@ def compareParams(position, zoom, dimensions, name, iterations=100,save=True):
 
 def runComparison():
 
-	execData = {'blocks':range(1,2048),
-		    'threads':range(1,1024)}
+	execData = {'blocks':range(1,2049),
+		    'threads':range(1,1025)}
 	
 	position = [-1.3,0]
-	dimensions = [2000,1000]
+	dimensions = [2048,1024]
 	zoom = 900
 
 	for mode in range(0,5):

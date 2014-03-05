@@ -103,23 +103,6 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	report = False
 	zoom = zoom * scale
 	dimensions = numpy.array([dimensions[0]*scale,dimensions[1]*scale],dtype=numpy.int32)
-	position = [position[0]*scale*zoom,position[1]*scale*zoom]
-
-	zoom = numpy.float32(zoom)
-	iterations = numpy.int32(iterations)
-	result = numpy.zeros(dimensions,dtype=numpy.int32)
-
-	#Center position
-	#position = Vector(position[0]*zoom,position[1]*zoom)
-	position = Vector(position[0],position[1])
-	position = position - (Vector(dimensions[0],dimensions[1])/2)
-	position = numpy.array([int(position.x),int(position.y)]).astype(numpy.float32)
-
-	#For progress reporting:
-	ppc = cuda.pagelocked_zeros((1,1),numpy.int32, mem_flags=cuda.host_alloc_flags.DEVICEMAP) #pagelocked progress counter
-	ppc[0,0] = 0
-	ppc_ptr = numpy.intp(ppc.base.get_device_pointer()) #pagelocked memory counter, device pointer to
-	#End progress reporting
 
 	#For block, grid calculation:
 	
@@ -145,6 +128,25 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 	
 	px_per_block = numpy.asarray(px_per_block).astype(numpy.int32)
 	px_per_thread = numpy.asarray(px_per_thread).astype(numpy.int32)
+
+	position = [position[0]*scale*zoom,position[1]*scale*zoom]
+
+	zoom = numpy.float32(zoom)
+	iterations = numpy.int32(iterations)
+	result = numpy.zeros(dimensions,dtype=numpy.int32)
+
+	#Center position
+	#position = Vector(position[0]*zoom,position[1]*zoom)
+	position = Vector(position[0],position[1])
+	position = position - (Vector(dimensions[0],dimensions[1])/2)
+	position = numpy.array([int(position.x),int(position.y)]).astype(numpy.float32)
+
+	#For progress reporting:
+	ppc = cuda.pagelocked_zeros((1,1),numpy.int32, mem_flags=cuda.host_alloc_flags.DEVICEMAP) #pagelocked progress counter
+	ppc[0,0] = 0
+	ppc_ptr = numpy.intp(ppc.base.get_device_pointer()) #pagelocked memory counter, device pointer to
+	#End progress reporting
+
 	#pdb.set_trace()
 
 	if debug:
