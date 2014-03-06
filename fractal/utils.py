@@ -29,16 +29,24 @@ def genParameters(blocks,threads,dimensions,silent=False):
 	# we might want to try a shape in the middle of each first
 	for bestBlocks in getFactors(blocks):
 		px_per_block = dimensions/bestBlocks
+		dimensions_x = (px_per_block * bestBlocks)
+		#print 'dim: ', px_per_block, bestBlocks, dimensions, dimensions_x
 		if (1-(px_per_block!=0).astype(np.int)).sum()>=1:
+		#byteme
+		#if (dimensions_x != dimensions).prod():
 			if 0:
 				print dimensions, bestBlocks
 				print 'px_per_block = %s'%px_per_block
 				print 'px_per_block!=0 = %s'%(px_per_block!=0).astype(np.int)
 				print 'b4 sum = %s'%(1-(px_per_block!=0).astype(np.int))
 			continue
+
 		for bestThreads in getFactors(threads):
 			px_per_thread = px_per_block/bestThreads
+			px_per_block_x = px_per_thread * bestThreads
+			#print 'thread = ', px_per_block, px_per_block_x
 			if (1-(px_per_thread!=0).astype(np.int)).sum() < 1: # ==0???, anyway, we found a case, use it!
+			#if (px_per_block_x == px_per_block).prod():
 				if not silent:
 					print "Block dimensions are " + str(bestBlocks)+", each block contains " + str(px_per_block)+" pixels."
 					print "Thread dimensions per block are " + str(bestThreads)
@@ -48,7 +56,6 @@ def genParameters(blocks,threads,dimensions,silent=False):
 					print " = " + str((bestBlocks*bestThreads).prod()) + " total threads."
 					
 				return (bestBlocks,bestThreads,px_per_block,px_per_thread)
-			
 			
 	if not silent:
 		print "Combination of blocks, threads, and dimensions does not result in any block, ",
@@ -90,7 +97,7 @@ if __name__ == '__main__':
 	for blocks in range(1,2049):
 		for threads in range(1,1025):
 			try:
-				ps = genParameters(blocks, threads, [2048,1024], silent=True)
+				ps = genParameters(blocks, threads, [2000,1000], silent=True)
 				print '%d, %d, %s'%(blocks, threads, ps)
 			except ValueError:
 				pass
