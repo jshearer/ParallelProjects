@@ -43,7 +43,7 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
 	nExec = len(data_file.listNodes(getGroup()))
 
 	if overlap:
-		grp = data_file.createGroup(getGroup(),"Overlap "+str(nExec), "Overlap run "+str(nExec+1))
+		grp = data_file.createGroup(getGroup(),"Overlap"+str(nExec), "Overlap run "+str(nExec+1))
 	else:
 		grp = data_file.createGroup(getGroup(),str(nExec), "Execution number "+str(nExec+1))
 	
