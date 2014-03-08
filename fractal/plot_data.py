@@ -92,17 +92,26 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False, show=False):
 	plt.tight_layout()
 	
 	plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
-	if show: plt.show()
+	if show: plt.show()  # doesn't work with Agg???
 	
-	print "Saving file now."	
-	with open(directory+"mode_"+str(mode)+"-id"+str(index)+".png",'w') as f:
+	print "Saving file now."
+	fn = directory+"mode_"+str(mode)+"-id"+str(index)+".png"
+	with open(fn,'w') as f:
+		print 'Saving to ', fn
 		plt.savefig(f)
 	plt.clf()
 
 if __name__ == '__main__':
 	import fractal_data
+	from sys import  argv
 #	print "Inserted into index: "+str(index)
-	data = fractal_data.extractCols(5)
+	if len(argv) == 2:
+		num = argv[1]
+	else:
+		num = 1
+
+	print 'Displaying index = %s'%num
+	data = fractal_data.extractCols(num)
 #	print "len cores,times,threads ("+str(len(cores))+", "+str(len(times))+", "+str(len(threads))+")."
-	makePlot(data,"./",ylog=True, show=True)
+	makePlot(data,"results/",ylog=True, show=True)
 	
