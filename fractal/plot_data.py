@@ -15,7 +15,7 @@ import numpy as np
 
 _VERBOSE = False
 
-def makePlot(data,directory,xlog=True,ylog=False,ovlog=False, show=False):
+def makePlot(data,directory,xaxis='cores',xlog=True,ylog=False,ovlog=False,show=False,save=True):
     cores      = data[0]
     times      = data[1]
     threads    = data[2]
@@ -31,6 +31,7 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False, show=False):
     threads = np.array(threads,dtype=np.float)
     cores = np.array(cores,dtype=np.float)
     times = np.array(times,dtype=np.float)
+    dimensions = np.array(dimensions, dtype=np.int)
     if mode==4:
         overlap = np.array(data[8],dtype=np.float)
 ###############################################
@@ -44,14 +45,30 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False, show=False):
 ##############################################
     if _VERBOSE:
         print threads_max
-        #threads = [(x,x,x) for x in threads]
+        # threads = [(x,x,x) for x in threads]
         print threads
         print cores
         print times
 
-    #plt.plot(x_coords,y_coords,'ro')
+    # plt.plot(x_coords,y_coords,'ro')
 
-    x_axis = cores
+    if xaxis == 'cores':
+        x_axis = cores
+        c_axis = threads
+        clabel = 'Threads per core'
+    elif xaxis == 'threads_per_core':
+        x_axis = threads
+        c_axis = cores
+        clabel = 'Blocks'
+    elif xaxis == 'total_threads':
+        x_axis = cores*threads
+        c_axis = cores
+        clabel = 'Blocks'
+    elif xaxis == 'px_per_thread':
+        x_axis = dimensions.prod() / cores / threads
+        c_axis = cores
+        clabel = 'Blocks'
+        
     y_axis = times
     
     fig = plt.figure(figsize = (12,7)) # dpi=350
@@ -63,11 +80,11 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False, show=False):
     #ax.set_xlim([-(x_axis.min()/10.0),x_axis.max()+(x_axis.max()/10.0)])
     #ax.set_ylim([-(y_axis.min()/10.0),y_axis.max()+(y_axis.max()/10.0)])
 
-    sc = ax.scatter(x_axis,y_axis,c=threads,marker="+",norm=pltlib.colors.LogNorm())    
+    sc = ax.scatter(x_axis,y_axis,c=c_axis,marker="+",norm=pltlib.colors.LogNorm())    
     cb_ax = plt.subplot(gspec[2])
 
     cbar = fig.colorbar(sc, cax=cb_ax)
-    cbar.set_label("Number of threads per core")
+    cbar.set_label(clabel)
 
     if mode==4:
         ax2 = ax.twinx()
@@ -79,10 +96,10 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False, show=False):
         ax.legend((sc,ov),('Time','Overlap'),scatterpoints=4,loc="upper right")
         pass
     else:
-        ax.legend((sc,), ('Time',),scatterpoints=4,loc="upper right")
+        ax.legend((sc,), ('Time',),scatterpoints=4,loc="upper center")
     
     ax.set_ylabel("Time to compute "+("log10" if ylog else "")+"(seconds)")
-    ax.set_xlabel("Number of CUDA cores"+(", log10" if xlog else ""))
+    ax.set_xlabel("Number of CUDA %s"%xaxis+(", log10" if xlog else ""))
 
     if xlog:
         ax.set_xscale('log')
@@ -94,35 +111,58 @@ def makePlot(data,directory,xlog=True,ylog=False,ovlog=False, show=False):
             ax2.set_yscale('log')
     ax.grid(True)
     ax.axis('tight')
-    title_identifier = {0:'write',1:'read and write',2:'raw compute',3:'atomicAdd test + regular write',4:'Overlap'}[mode]
+    title_identifier = {0:'write',1:'read and write',2:'raw compute',
+                        3:'atomicAdd test + regular write',4:'Overlap'}[mode]
 
     fig.suptitle("Fractal generation ["+title_identifier+"]\nDimensions: "+str(dimensions)+"\nZoom: "+str(zoom))
     plt.tight_layout()
     
     plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
 
-    print "Saving file now."
-    fn = directory+"mode_"+str(mode)+"-id"+str(index)+".png"
-    with open(fn,'w') as f:
-        print 'Saving to ', fn
-        plt.savefig(f, figsize = (12,7)) 
+    if save:
+        print "Saving file now."
+        fn = directory+"mode_"+str(mode)+"-id"+str(index)+".png"
+        with open(fn,'w') as f:
+            print 'Saving to ', fn
+            plt.savefig(f, figsize = (12,7)) 
 
     # http://stackoverflow.com/questions/9012487/matplotlib-pyplot-savefig-outputs-blank-image
-    if show: plt.show()  # doesn't work with Agg???
+    if show: plt.show()  # do nothing if Agg
 
     plt.clf()
 
 if __name__ == '__main__':
+    from optparse import OptionParser
     import fractal_data
-    from sys import  argv
-#   print "Inserted into index: "+str(index)
-    if len(argv) == 2:
-        num = argv[1]
-    else:
-        num = 1
 
-    print 'Displaying index = %s'%num
-    data = fractal_data.extractCols(num)
+    xaxisD = {'cores': 'cores', 'tpc': 'threads_per_core', 'threads': 'total_threads', 'ppt': 'px_per_thread'}
+
+    parser = OptionParser(version="1.0", usage="python [-O] plot_data.py nExec [OPTIONS]  Make plots from stored data.")
+
+    parser.add_option("--xaxis", action="store", dest="xaxis", default="cores", help="Choose X axis: cores (default), tpc (threads_per_core), threads (total_threads), ppt (px_per_thread)")
+    
+    parser.add_option("--ylog", action="store_true", dest="ylog", default=True, help="use Log10 y (default)")
+    parser.add_option("--noylog", action="store_false", dest="ylog", help="do not use log10 y")
+    
+    parser.add_option("--xlog", action="store_true", dest="xlog", default=True, help="use Log10 x (default)")
+    parser.add_option("--noxlog", action="store_false", dest="xlog", help="do not use log10 x")
+
+    parser.add_option("--ovlog", action="store_true", dest="ovlog", default=False, help="use Log10 overlap")
+
+    parser.add_option("--show", action="store_true", dest="show", default=False, help="Display plot if DISPLAY is set")
+
+    parser.add_option("--save", action="store_true", dest="save", default=False, help="Store plot as PNG")
+                
+    
+    (options, args) = parser.parse_args()
+    if len(args)<1:
+        parser.error("Must supply nExec")
+
+    if options.xaxis not in xaxisD.keys():
+        parser.error("--axis=XXX, XXX must be one of cores, tpc, threads, ppt")
+    
+    print 'You selected nExec = %s'%args[0]
+    data = fractal_data.extractCols(args[0])
 #   print "len cores,times,threads ("+str(len(cores))+", "+str(len(times))+", "+str(len(threads))+")."
-    makePlot(data,"results/",ylog=True, show=True)
+    makePlot(data,"results/",xlog=options.xlog, ylog=options.ylog, ovlog=options.ovlog, show=options.show, save=options.save, xaxis=xaxisD[options.xaxis])
     
