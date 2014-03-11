@@ -116,9 +116,9 @@ def alreadyRan(position,dimensions,zoom,mode):
         mode_check = (node.meta['mode']==mode)
     
         if pos and dim and zoom_check and mode_check:
-            return true
+            return True
 
-    return false            
+    return False            
 
 def extractCols(nExec):
     init()
@@ -147,7 +147,29 @@ def extractCols(nExec):
     return (blocks,times,threads,meta[0]['zoom'],meta[0]['mode'],
             (meta[0]['dimensions_x'],meta[0]['dimensions_y']),iters,nExec,overlap)
 
+def extractMetaData():
+    init()
+    global data_file    
 
+    nExec = len( data_file.listNodes(getGroup()) )
+    print 'nExec = ', nExec
+    
+    #print data_file.root.execSets._f_list_nodes()
+
+    nameL = [ e._v_name for e in data_file.root.execSets ]
+    nameL.sort()
+
+    for name in nameL:
+        meta = data_file.getNode("/execSets/"+name+"/meta")        
+        print 'set(%s) = %s'%(name, meta[0])  # set(0) = (2000, 1000, 100, 0, -1.3, 0.0, 900.0)
+        # print meta.__class__, dir(meta)
+        print meta.colnames, dir(meta.row), meta.row
+        print meta.row.fetch_all_fields()
+        print meta[0].__class__, dir(meta[0])
+        byte
+        
+    #meta = data_file.getNode("/execSets/"+str(nExec)+"/meta")
+    
 def getGroup():
     init()
     global data_file
@@ -164,3 +186,7 @@ def init():
             data_file.createGroup("/","execSets","Sets of execution with varying position,zoom,dimensions,blockData, or threadData")
 
 init()
+
+if __name__ == '__main__':
+    
+    extractMetaData()

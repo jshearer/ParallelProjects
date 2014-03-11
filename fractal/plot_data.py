@@ -156,6 +156,7 @@ if __name__ == '__main__':
     
     (options, args) = parser.parse_args()
     if len(args)<1:
+        print fractal_data.getGroup()
         parser.error("Must supply nExec")
 
     if options.xaxis not in xaxisD.keys():
