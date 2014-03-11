@@ -1,6 +1,8 @@
 import tables as tab
 
-data_file = None
+NoSuchNodeError = tab.exceptions.NoSuchNodeError
+
+_data_file = None  # module private
 
 class Execution(tab.IsDescription):
     index             = tab.Int32Col()
@@ -34,20 +36,21 @@ class MetaData(tab.IsDescription):
 
 def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
     from call_utils import callCUDA
+    global _data_file
+
+    _init()
+
     #Only compile the function when we need to
     overlap = (mode==4)
 
-    init()
-    global data_file
-
-    nExec = len(data_file.listNodes(getGroup()))
+    nExec = len(_data_file.listNodes(getGroup()))
 
     if overlap:
-        grp = data_file.createGroup(getGroup(),"Overlap"+str(nExec), "Overlap run "+str(nExec+1))
+        grp = _data_file.createGroup(getGroup(),"Overlap"+str(nExec), "Overlap run "+str(nExec+1))
     else:
-        grp = data_file.createGroup(getGroup(),str(nExec), "Execution number "+str(nExec+1))
+        grp = _data_file.createGroup(getGroup(),str(nExec), "Execution number "+str(nExec+1))
         
-    meta = data_file.createTable(grp,"meta",MetaData,"Metadata")
+    meta = _data_file.createTable(grp,"meta",MetaData,"Metadata")
 
     meta.row['pos_x'] = position[0]
     meta.row['pos_y'] = position[1]
@@ -65,9 +68,9 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
     meta.row.append()
     meta.flush()
     if overlap:
-        data = data_file.createTable(grp,"data",OverlapExecution,"Real data")   
+        data = _data_file.createTable(grp,"data",OverlapExecution,"Real data")   
     else:
-        data = data_file.createTable(grp,"data",Execution,"Real data")
+        data = _data_file.createTable(grp,"data",Execution,"Real data")
 
     for block in execData['blocks']:
         for thread in execData['threads']:              
@@ -100,10 +103,10 @@ def calculateOverlap(result):
     return np.sum(result)-(result.shape[0]*result.shape[1])
 
 def alreadyRan(position,dimensions,zoom,mode):
-    init()
-    global data_file
+    global _data_file
+    _init()
 
-    for node in data_file.walkNodes('/execSets'):
+    for node in _data_file.walkNodes('/execSets'):
         pos_x = (node.meta['pos_x']==position[0])
         pos_y = (node.meta['pos_y']==position[1])
         pos = pos_x and pos_y
@@ -118,20 +121,20 @@ def alreadyRan(position,dimensions,zoom,mode):
         if pos and dim and zoom_check and mode_check:
             return True
 
-    return False            
+    return False
 
 def extractCols(nExec):
-    init()
-    global data_file
-    
-    meta = data_file.getNode("/execSets/"+str(nExec)+"/meta")
+    global _data_file
+    _init()
+
+    meta = _data_file.getNode("/execSets/"+str(nExec)+"/meta")
 
     blocks  = []
     times   = []
     threads = []
     overlap = []
     
-    data = data_file.getNode("/execSets/"+str(nExec)+"/data")
+    data = _data_file.getNode("/execSets/"+str(nExec)+"/data")
 
     for execution in data:
         blocks.append(execution['blocks'])
@@ -148,45 +151,32 @@ def extractCols(nExec):
             (meta[0]['dimensions_x'],meta[0]['dimensions_y']),iters,nExec,overlap)
 
 def extractMetaData():
-    init()
-    global data_file    
+    global _data_file    
+    _init()
 
-    nExec = len( data_file.listNodes(getGroup()) )
-    print 'nExec = ', nExec
-    
-    #print data_file.root.execSets._f_list_nodes()
+    nameL = [ e._v_name for e in _data_file.root.execSets ]
 
-    nameL = [ e._v_name for e in data_file.root.execSets ]
-    nameL.sort()
-
+    metaD={}
     for name in nameL:
-        meta = data_file.getNode("/execSets/"+name+"/meta")        
-        print 'set(%s) = %s'%(name, meta[0])  # set(0) = (2000, 1000, 100, 0, -1.3, 0.0, 900.0)
-        # print meta.__class__, dir(meta)
-        print meta.colnames, dir(meta.row), meta.row
-        print meta.row.fetch_all_fields()
-        print meta[0].__class__, dir(meta[0])
-        byte
-        
-    #meta = data_file.getNode("/execSets/"+str(nExec)+"/meta")
+        meta = _data_file.getNode("/execSets/"+name+"/meta")
+        metaD[name] = { key:meta[0][key] for key in meta.colnames}
+
+    return metaD
     
 def getGroup():
-    init()
-    global data_file
+    global _data_file
+    _init()
+    return _data_file.root.execSets
 
-    return data_file.root.execSets
+def _init():
+    global _data_file
 
-def init():
-    global data_file
-
-    if data_file == None:
+    if _data_file == None:
         filename = "fractalData.h5"
-        data_file = tab.openFile(filename,mode='a',title="Fractal timing data")
-        if not ("/execSets" in data_file):
-            data_file.createGroup("/","execSets","Sets of execution with varying position,zoom,dimensions,blockData, or threadData")
-
-init()
+        _data_file = tab.openFile(filename,mode='a',title="Fractal timing data")
+        if not ("/execSets" in _data_file):
+            _data_file.createGroup("/","execSets","Sets of execution with varying position,zoom,dimensions,blockData, or threadData")
 
 if __name__ == '__main__':
     
-    extractMetaData()
+    print extractMetaData()

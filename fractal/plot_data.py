@@ -133,37 +133,47 @@ def makePlot(data,directory,xaxis='cores',xlog=True,ylog=False,ovlog=False,show=
 
 if __name__ == '__main__':
     from optparse import OptionParser
-    import fractal_data
-
-    xaxisD = {'cores': 'cores', 'tpc': 'threads_per_core', 'threads': 'total_threads', 'ppt': 'px_per_thread'}
-
-    parser = OptionParser(version="1.0", usage="python [-O] plot_data.py nExec [OPTIONS]  Make plots from stored data.")
-
-    parser.add_option("--xaxis", action="store", dest="xaxis", default="cores", help="Choose X axis: cores (default), tpc (threads_per_core), threads (total_threads), ppt (px_per_thread)")
+    from fractal_data import NoSuchNodeError, extractMetaData, extractCols
     
+    parser = OptionParser(version="1.0", usage="python [-O] plot_data.py [--save | --show] [other OPTIONS]  Make plots from stored data.")
+    parser.add_option("--xaxis", action="store", dest="xaxis", default="cores", help="Choose X axis: cores (default), tpc (threads_per_core), threads (total_threads), ppt (px_per_thread)")
     parser.add_option("--ylog", action="store_true", dest="ylog", default=True, help="use Log10 y (default)")
     parser.add_option("--noylog", action="store_false", dest="ylog", help="do not use log10 y")
-    
     parser.add_option("--xlog", action="store_true", dest="xlog", default=True, help="use Log10 x (default)")
     parser.add_option("--noxlog", action="store_false", dest="xlog", help="do not use log10 x")
-
     parser.add_option("--ovlog", action="store_true", dest="ovlog", default=False, help="use Log10 overlap")
-
     parser.add_option("--show", action="store_true", dest="show", default=False, help="Display plot if DISPLAY is set")
-
     parser.add_option("--save", action="store_true", dest="save", default=False, help="Store plot as PNG")
-                
-    
+    parser.add_option("--nexec", action="store", dest="nexec", default=None, help="Data set identifier (nExec); if none, you will be prompted with a list of existing data")
     (options, args) = parser.parse_args()
-    if len(args)<1:
-        print fractal_data.getGroup()
-        parser.error("Must supply nExec")
+     
+    if not (options.show or options.save):
+        parser.error("You must choose --save or --show, otherwise whadya-want-from-me???")
 
+    if not options.nexec:
+        dataD = extractMetaData()
+        dataL = dataD.keys()
+        dataL.sort()
+        for dataA in dataL:
+            print '%s: %s'%(dataA, dataD[dataA])
+        chc = str( raw_input('\nEnter id (RET to exit): ') )
+        if len(chc)==0:
+            print 'exiting ... '
+            exit(0)
+        print '\nYou chose %s: %s'%(chc, dataD[chc])
+        options.nexec = chc
+
+    xaxisD = {'cores': 'cores', 'tpc': 'threads_per_core', 'threads': 'total_threads', 'ppt': 'px_per_thread'}
     if options.xaxis not in xaxisD.keys():
         parser.error("--axis=XXX, XXX must be one of cores, tpc, threads, ppt")
     
-    print 'You selected nExec = %s'%args[0]
-    data = fractal_data.extractCols(args[0])
-#   print "len cores,times,threads ("+str(len(cores))+", "+str(len(times))+", "+str(len(threads))+")."
-    makePlot(data,"results/",xlog=options.xlog, ylog=options.ylog, ovlog=options.ovlog, show=options.show, save=options.save, xaxis=xaxisD[options.xaxis])
+    print 'You selected nExec = %s'%options.nexec
+    try:
+        data = extractCols(options.nexec)
+    except NoSuchNodeError, e:
+        print e
+        exit(0)
+        
+    makePlot(data,"results/",xlog=options.xlog, ylog=options.ylog, ovlog=options.ovlog,
+             show=options.show, save=options.save, xaxis=xaxisD[options.xaxis])
     
