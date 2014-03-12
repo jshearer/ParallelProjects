@@ -75,7 +75,9 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
     for block in execData['blocks']:
         for thread in execData['threads']:              
             try:
-                result,time,block_dim,thread_dim = callCUDA(position,zoom,dimensions,str(block)+", "+str(thread),block=block,thread=thread,save=False,mode=mode)
+                name=str(block)+", "+str(thread)
+                result,time,block_dim,thread_dim = callCUDA(position,zoom,dimensions,name,
+                                                            block=block,thread=thread,save=False,mode=mode)
             except ValueError:
                 continue
 
@@ -106,6 +108,7 @@ def alreadyRan(position,dimensions,zoom,mode):
     global _data_file
     _init()
 
+    # why not replace this with a tables search
     for node in _data_file.walkNodes('/execSets'):
         pos_x = (node.meta['pos_x']==position[0])
         pos_y = (node.meta['pos_y']==position[1])
