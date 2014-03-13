@@ -35,6 +35,9 @@ class MetaData(tab.IsDescription):
     iterations        = tab.Int32Col()
 
 def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
+    """
+    Run callCUDA over a range of block and thread shapes and sizes, and collect data on time spent. 
+    """
     from call_utils import callCUDA
     global _data_file
 
@@ -108,7 +111,7 @@ def alreadyRan(position,dimensions,zoom,mode):
     global _data_file
     _init()
 
-    # why not replace this with a tables search
+    # TODO: replace this with a tables search
     for node in _data_file.walkNodes('/execSets'):
         pos_x = (node.meta['pos_x']==position[0])
         pos_y = (node.meta['pos_y']==position[1])

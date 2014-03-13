@@ -45,9 +45,9 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     # TODO: can convert these to options as well
-    position = [-1.3,0]
-    dimensions = [2000,1000]
-    zoom = 900
+    position = [-2,0]           # centers the view????
+    dimensions = [2048, 2048]   # this affects the area covered
+    zoom = 500                  # some kind of zoom???
     modeL = (0,1) # range(0,5)
     
     if options.runT:
