@@ -14,7 +14,7 @@
 %   read geometry.pdf for detailed page layout information
 
 \usepackage{graphicx} % support the \includegraphics command and options
-
+\usepackage{amsmath}
 % \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
 
 %%% PACKAGES
@@ -42,7 +42,7 @@
 %%% The "real" document content comes below...
 
 \title{Scaling efficiency for fractal generation on NVIDIA GPUs}
-\author{Les Schaffer}
+\author{Les Schaffer\\Joseph Shearer}
 \date{} % Activate to display a given date or no date (if empty),
          % otherwise the current date is printed 
 
@@ -55,6 +55,27 @@ We estimate the time required to run the CUDA fractal kernel as a function of th
 
 \subsection{Time segments}
 
-Here.
+...
 
+\section{Fractal algorithm}
+The main fractal algorithm is written in pycuda. The transformation from pixel space to position space is as follows:
+\begin{align}
+x &= x_0 + \frac{m-M/2}{Z}  \\
+y &= y_0 - \frac{n-N/2}{Z}
+\end{align}
+where
+\begin{align*}
+x_0 &= \hbox{\rm position.x}\\
+y_0 &= \hbox{\rm position.y}\\
+M &= \hbox{\rm dimension.x}\\
+N &= \hbox{\rm dimension.y}\\
+m &= \hbox{\rm pixel x coordinate, from top left}\\
+n &= \hbox{\rm pixel y coordinate, from top left}\\
+Z &= \hbox{\rm zoom}
+\end{align*}
+So the upper left / lower right corner is, with $m,n=0,0\ /\ M-1, N-1$:
+\begin{align}
+x_{ul} &= x_0 - \frac{M}{2Z}  \\
+y_{ul} &= y_0 + \frac{N}{2Z}
+\end{align}
 \end{document}

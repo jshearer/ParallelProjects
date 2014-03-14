@@ -45,6 +45,17 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     # TODO: can convert these to options as well
+
+    ## Each pixel (x,y) in the generated image is
+    ## ((((x*zoom)-(dimensions.x/2))/zoom) + position.x) + ((((y*zoom)-(dimensions.y/2))/zoom) + position.y) i
+    ## 
+    ## So, for example. Position = [-1,0] Dimensions = [2000,1000], zoom = 1000.
+    ## Top left corner: x=0, y=0.
+    ## (Real part:) 0*1000 - (2000/2)/1000 + -1 = -1 - 1 = -2
+    ## (Imag part:) 0*1000 - (1000/2)/1000 + 0 = -500/1000 = - 1/2i
+    ## So in the complex plane, the top left corner of the image would map to -2 - 1/2i
+
+
     position = [-2,0]           # centers the view????
     dimensions = [2048, 2048]   # this affects the area covered
     zoom = 500                  # some kind of zoom???
