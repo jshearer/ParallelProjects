@@ -2,48 +2,69 @@ import call_utils
 import fractal_data
 import plot_data
 
-def compareParams(position, zoom, dimensions, name, iterations=100,save=True):
-	print "Comparing paramaters for ("+str(name)+"): ( ("+str(position[0])+", "+str(position[1])+"), "+str(zoom)+", ("+str(dimensions[0])+", "+str(dimensions[1])+") )"
+def runComparison(name,iterations=100,save=True):
+    print "Comparing parameters for (" +str(name)+ "): ( (" +str(position[0])+","+str(position[1])+"), ",
+    print str(zoom)+", ("+str(dimensions[0])+", "+str(dimensions[1])+") )"
+        
+    cpuTime = call_utils.callCPU(position,zoom,dimensions,name,iterations,save=save)
+    try:
+        cudaTime = call_utils.callCUDA(position,zoom,dimensions,name,iterations,block=block,thread=thread,save=save)
+    except:
+        cudaTime = 'NA'
+        pass
 
-	cpuTime = call_utils.callCPU(position,zoom,dimensions,name,iterations,save=save)
-	cudaTime = call_utils.callCUDA(position,zoom,dimensions,name,iterations,save=save)
+    print "CPU ran in "+str(cpuTime)+"s"
+    print "CUDA ran in "+str(cudaTime)+"s"
 
-	print "CPU ran in "+str(cpuTime)+"s"
-	print "CUDA ran in "+str(cudaTime)+"s"
+def runTiming():
+    execData = {'blocks':range(1,2049),
+                'threads':range(1,1025)}
 
-def runComparison():
+    for mode in modeL:
+        print "Mode "+str(mode)+":"
+        nExec=None
+        try:
+            nExec = fractal_data.cudaCollect(position,zoom,dimensions,execData,mode=mode)
+        except Exception, e:
+            print e
 
-	bData = {
-			0: #x
-				[1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240,250,300,350,400,450,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000],
-				#[50,100,200],
-			1: #y
-				[1]
-	}
+        if options.show and nExec:
+            data = fractal_data.extractCols(nExec)
+            plot_data.makePlot(data,"results/", ylog=True, show=True, save=False)
+    
+if __name__ == '__main__':
 
-	tData = {
-			0: #x
-				[1,2,3,4,5,6,7,8,16,20,25,40,32,64,128,256,512,1024],
-				#range(1,100),
-			1: #y
-				[1]
-	}
+    from optparse import OptionParser
+    usage="python [-O] comparison.py [--timing | --comparison] [other OPTIONS] "+\
+      " Run fractal simulation, for comparison or timing purposes."
+    parser = OptionParser(version="1.0", usage=usage)
+    parser.add_option("--timing", action="store_true", dest="runT", default=False, help="Run the timing mode")
+    parser.add_option("--comparison", action="store_true", dest="runC", default=False, help="Run the comparison mode")    
+    parser.add_option("--show", action="store_true", dest="show", default=False, help="Display plot if DISPLAY is set")
+    parser.add_option("--save", action="store_true", dest="save", default=False, help="Store plot as PNG")
+    (options, args) = parser.parse_args()
 
-#	print "Mode 0:"
-#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=0)
-#	print "Mode 1:"
-#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=1)
-#	print "Mode 2:"
-#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=2)
-#	print "Mode 3:"
-#	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=3)
+    # TODO: can convert these to options as well
 
-	print "Overlap (mode 4):"
-	fractal_data.cudaCollect([0,0],900,[2000,2000],bData,tData,mode=4)
+    ## Each pixel (x,y) in the generated image is
+    ## ((((x*zoom)-(dimensions.x/2))/zoom) + position.x) + ((((y*zoom)-(dimensions.y/2))/zoom) + position.y) i
+    ## 
+    ## So, for example. Position = [-1,0] Dimensions = [2000,1000], zoom = 1000.
+    ## Top left corner: x=0, y=0.
+    ## (Real part:) 0*1000 - (2000/2)/1000 + -1 = -1 - 1 = -2
+    ## (Imag part:) 0*1000 - (1000/2)/1000 + 0 = -500/1000 = - 1/2i
+    ## So in the complex plane, the top left corner of the image would map to -2 - 1/2i
 
-#	print "Inserted into index: "+str(index)
-#	data = fractal_data.extractCols(index)
-#	print "len cores,times,threads ("+str(len(cores))+", "+str(len(times))+", "+str(len(threads))+")."
-#	plot_data.makePlot(data,"/home/jshearer/ParallelProjects/graphs/fractal/")
 
-runComparison()
+    position = [0,0]           # centers the view????
+    dimensions = [2048, 2048]   # H, W !!!!  this affects the area covered
+    zoom = 500                  # some kind of zoom???
+    modeL = (0,1) # range(0,5)
+    
+    if options.runT:
+        runTiming()
+
+    if options.runC:
+        block=(5,5,1)
+        thread=(1,1,1)
+        runComparison('Check1', save=options.save)

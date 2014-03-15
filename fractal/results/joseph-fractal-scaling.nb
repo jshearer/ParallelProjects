@@ -1,0 +1,130 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 8.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[      3836,        121]
+NotebookOptionsPosition[      3561,        107]
+NotebookOutlinePosition[      3898,        122]
+CellTagsIndexPosition[      3855,        119]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"Plot", "[", " ", 
+  RowBox[{
+   RowBox[{"Log10", "[", " ", 
+    RowBox[{"1", "+", " ", 
+     RowBox[{"1000", "/", 
+      RowBox[{"10", "^", 
+       RowBox[{"(", "N", ")"}]}]}]}], "]"}], ",", " ", 
+   RowBox[{"{", 
+    RowBox[{"N", ",", " ", "0", ",", " ", "5"}], "}"}], ",", " ", 
+   RowBox[{"GridLines", "\[Rule]", " ", "Automatic"}], ",", " ", 
+   RowBox[{"AxesLabel", "\[Rule]", " ", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"Log", "[", "N", "]"}], ",", " ", 
+      RowBox[{"Log", "[", "t", "]"}]}], "}"}]}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.6022906473434763`*^9, 3.602290651314887*^9}, {
+  3.602290762583085*^9, 3.602290895070999*^9}, {3.602290951457183*^9, 
+  3.602290958017338*^9}, {3.602291024274753*^9, 3.60229102494705*^9}, {
+  3.6022910753172398`*^9, 3.602291130325824*^9}, {3.6022912065210857`*^9, 
+  3.6022912307138433`*^9}, {3.602291346318551*^9, 3.602291409026143*^9}, {
+  3.6022914721167192`*^9, 3.602291494772565*^9}, {3.602291536149331*^9, 
+  3.6022916552896852`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"{", 
+   RowBox[{"x", ",", "y"}], "}"}], " ", "=", " ", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"x0", ",", " ", "y0"}], "}"}], "+", 
+   RowBox[{
+    RowBox[{"1", "/", 
+     RowBox[{"(", 
+      RowBox[{"2", " ", "Z"}], ")"}]}], " ", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"-", "M"}], "+", 
+       RowBox[{"2", " ", "m"}], " ", "+", "1"}], ",", " ", 
+      RowBox[{"N", " ", "-", " ", 
+       RowBox[{"2", " ", "n"}], " ", "-", "1"}]}], 
+     "}"}]}]}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"x", ",", "y"}], "}"}], " ", "/.", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"m", "\[Rule]", " ", "0"}], ",", " ", 
+     RowBox[{"n", "\[Rule]", " ", "0"}]}], "}"}]}], "//", 
+  "Expand"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"x", ",", "y"}], "}"}], " ", "/.", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"m", "\[Rule]", " ", 
+      RowBox[{"M", "-", "1"}]}], ",", " ", 
+     RowBox[{"n", "\[Rule]", " ", 
+      RowBox[{"N", "-", "1"}]}]}], "}"}]}], "//", 
+  "Expand"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"x", ",", "y"}], "}"}], " ", "/.", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"m", "\[Rule]", " ", 
+      RowBox[{"M", "-", "1"}]}], ",", " ", 
+     RowBox[{"n", "\[Rule]", " ", "0"}]}], "}"}]}], "//", 
+  "Expand"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"x", ",", "y"}], "}"}], " ", "/.", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"m", "\[Rule]", " ", "0"}], ",", " ", 
+     RowBox[{"n", "\[Rule]", " ", 
+      RowBox[{"N", "-", "1"}]}]}], "}"}]}], "//", "Expand"}]}], "Input",
+ CellChangeTimes->{{3.6038790174471188`*^9, 3.603879157094521*^9}, {
+  3.603879230298625*^9, 3.6038792313054247`*^9}, {3.603879335504133*^9, 
+  3.603879336685843*^9}, {3.603879885251441*^9, 3.603879885793771*^9}, {
+  3.603880349118614*^9, 3.6038803840642023`*^9}}]
+},
+WindowSize->{740, 867},
+WindowMargins->{{Automatic, 240}, {Automatic, 8}},
+FrontEndVersion->"8.0 for Linux x86 (64-bit) (February 23, 2011)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 1023, 22, 50, "Input"],
+Cell[1583, 44, 1974, 61, 107, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)

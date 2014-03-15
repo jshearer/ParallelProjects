@@ -1,0 +1,114 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This is a simple template for a LaTeX document using the "article" class.
+% See "book", "report", "letter" for other types of document.
+
+\documentclass[10pt]{article} % use larger type; default would be 10pt
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{letterpaper} % or letterpaper (US) or a5paper or....
+% \geometry{margin=2in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+\usepackage{amsmath}
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% END Article customizations
+
+%%% The "real" document content comes below...
+
+\title{Scaling efficiency for fractal generation on NVIDIA GPUs}
+\author{Les Schaffer\\Joseph Shearer}
+\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+\maketitle
+
+\section{Purpose}
+We estimate the time required to run the CUDA fractal kernel as a function of the number of computational threads and associated variables.
+
+\section{Fractal algorithm}
+The main fractal algorithm is written in pycuda. The transformation from pixel space to position space is as follows; assuming $M,N$ are even:
+\begin{align}
+\begin{pmatrix}x\\y\end{pmatrix} &= \begin{pmatrix}x_0\\y_0\end{pmatrix}
++\frac{1}{2Z}\begin{pmatrix}-M\\\phantom{-}N\end{pmatrix}
++\frac{1}{2Z}\begin{pmatrix}\phantom{-}1\\-1\end{pmatrix}
++\frac{1}{Z}\begin{pmatrix}\phantom{-}m\\-n\end{pmatrix}\\
+\noalign{\vbox{}}
+ &= \begin{pmatrix}x_0\\y_0\end{pmatrix}
+ +\frac{1}{2Z}\begin{pmatrix}-M+2m+1\\\phantom{-}N-2m-1\end{pmatrix}
+\end{align}
+where, in (1) on the right,  the first term represents the displacement of the center of the pixel array, the second term is the displacement from the center to the upper left corner, the third term is a half-pixel step into the center of the pixel, and the fourth term is the displacement from the center of the upper left pixel to the center of the pixel in question, and 
+\begin{align*}
+x_0 &= \hbox{\rm position.x}\\
+y_0 &= \hbox{\rm position.y}\\
+M &= \hbox{\rm dimension.x}\\
+N &= \hbox{\rm dimension.y}\\
+m &= \hbox{\rm pixel x coordinate, from top left}\\
+n &= \hbox{\rm pixel y coordinate, from top left}\\
+Z &= \hbox{\rm zoom.}
+\end{align*}
+In this case the upper left ($ul$) / lower right ($lr$) corner is, with $m,n=0,0\ /\ M-1, N-1$:
+\begin{align}
+x_{ul} &= x_0 - \frac{M}{2Z} + \frac{1}{2Z} \qquad &x_{lr} = x_0 + \frac{M}{2Z} - \frac{1}{2Z} \\
+y_{ul} &= y_0 + \frac{N}{2Z} - \frac{1}{2Z} \qquad &y_{lr} = y_0 - \frac{N}{2Z} + \frac{1}{2Z}
+\end{align}
+Generally, $Z>>1$ so that the $1/(2Z)$ terms can be ignored.
+
+If we desire a box around the center point $(x_0,y_0)$ of width, height $(W,H) = (\alpha H, H)$, where $\alpha$ is the aspect ratio, and we choose pixel array $(\alpha M, M)$, then $Z= M / H = \alpha M / W$. 
+\section{Timing}
+On the GPU, chunks of work are broken up into parallel threads, with groups of $T=1024$ threads arranged per block/core. The K20c has $B=2096$ cores. To understand how long it will take any particular parallel chunk of work to run, we then consider the time it takes to run each thread, assuming the threads are approximately the same amount of work. We will deal with issues of thread/core code launching,  and thread synchronization later. 
+
+In general, for large problems, there will be more than $B\times T$ chunks of work to perform, and inside each thread there will be a loop (possibly containing nested loops) of size $kl$ (pixels/thread in this case), allowing us an amount $N$ of work chunks, so $N = kl\times B \times T$. For the moment we will assume that $N$ chunks could be queued at once across $B\times T$ parallel threads, and the time to perform the queued chunks is the same as looping without queuing. 
+
+We wish to compute the time it then takes to run a thread, $\Delta t_{th}$. Let
+\begin{align}
+&\Delta t_{core}(B) &=& \hbox{\rm time to setup $B$ cores}\hfill\\
+&\Delta t_{thread}(T) &=& \hbox{\rm time to launch and complete $T$ threads on each core}\\
+&\Delta t_{shared} &=& \hbox{\rm time to run shared code that each thread must run}\\
+&\Delta t_{loop} &=& \hbox{\rm time to run one (outermost) for loop in the thread}
+\end{align}
+Then 
+\begin{align}
+\Delta t_{th} &= \Delta t_{core}  + \Delta t_{thread}  + \Delta t_{shared}  + kl \cdot\Delta t_{loop} \\
+&= \Delta t_{core}  + \Delta t_{thread}  + \Delta t_{shared}  + \frac{N}{B \cdot T} \cdot\Delta t_{loop}
+\end{align}
+If we assume for the moment that $ \Delta t_{const} =\Delta t_{core}  + \Delta t_{thread}  + \Delta t_{shared} $ is a constant independent of $B,T$, then
+\begin{align}
+\Delta t_{th} &= \Delta t_{const}  + kl \cdot\Delta t_{loop} \\
+&= \Delta t_{const}   + \frac{N}{B \cdot T} \cdot\Delta t_{loop}
+\end{align}
+and if $ \Delta t_{const} << kl \cdot\Delta t_{loop} $, then 
+\begin{align}
+\log_{10}\Delta t_{th} &\approx \log_{10} \Delta t_{loop} +  \log_{10} kl \\
+&\approx \log_{10} \Delta t_{loop}   + \log_{10} \frac{N}{B} - \log_{10} T  \\
+&\approx \log_{10} \Delta t_{loop}   + \log_{10} \frac{N}{T} - \log_{10} B
+\end{align}
+while $\log_{10} \Delta t_{th} \approx  \log_{10} \Delta t_{const} = \hbox{\rm constant}$ when $\Delta t_{const} >> kl \cdot\Delta t_{loop} $.
+In the small $ \Delta t_{const}$ case, the plot of $\log_{10} \Delta t_{th}$ vs pixels-per-thread $\log_{10} kl$ is linear with slope $+1$ (and intercept $\log_{10} \Delta t_{loop} $), while vs $\log_{10} B$, $\log_{10} T$ it is slope $-1$ (and intercept $\log_{10} N/(B,T)$). 
+\end{document}
