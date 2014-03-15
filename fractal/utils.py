@@ -1,7 +1,7 @@
 import numpy as np
 
 # we should have a modular way of characterizing GPU resources.
-K20C_BLOCKS = 2048
+K20C_BLOCKS = 2496
 K20C_THREADS = 1024
 
 def getFactors(val):

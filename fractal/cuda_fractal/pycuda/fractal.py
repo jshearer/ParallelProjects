@@ -1,25 +1,20 @@
 #!/usr/bin/python2
-import os
-from multiprocessing import Pool
-import utils
-from PIL import Image
 import numpy
-import argparse
-from Vector import Vector
-import sys
-import time
-import traceback
 import math
-import time
 import locale
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF_8')
 
 import pycuda.driver as cuda
-import pycuda.autoinit
+#import pycuda.autoinit
 from pycuda.compiler import SourceModule
 
+# for debugging
 import pdb
+
+# local imports
+from Vector import Vector
+import utils
 
 genChunk = SourceModule("""
 #include <cuComplex.h>
@@ -98,16 +93,17 @@ def In(thing):
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
 
-def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(15,15,1),thread=(1,1,1), report=False, silent=False, debug=True,px_per_block=False,px_per_thread=False):
+def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(15,15,1),thread=(1,1,1),
+                    report=False, silent=False, debug=True,px_per_block=False,px_per_thread=False):
 	#Force progress checking to False, otherwise it'll go on forever with reporting turned off in the kernel
 	report = False
 	zoom = zoom * scale
+        #                             
 	dimensions = numpy.array([dimensions[0]*scale,dimensions[1]*scale],dtype=numpy.int32)
 
 	#For block, grid calculation:
 	
 	if (type(block) == type(1)) and (type(thread) == type(1)):
-		import utils
 		#(block, thread, px_per_block, px_per_thread)
 		params = utils.genParameters(block,thread,dimensions,silent=silent)
 		if not px_per_block:

@@ -56,8 +56,8 @@ if __name__ == '__main__':
     ## So in the complex plane, the top left corner of the image would map to -2 - 1/2i
 
 
-    position = [-2,0]           # centers the view????
-    dimensions = [2048, 2048]   # this affects the area covered
+    position = [0,0]           # centers the view????
+    dimensions = [2048, 2048]   # H, W !!!!  this affects the area covered
     zoom = 500                  # some kind of zoom???
     modeL = (0,1) # range(0,5)
     

@@ -1,5 +1,4 @@
 import numpy
-import pdb
 from PIL import Image
 
 from multiprocessing import Pool
