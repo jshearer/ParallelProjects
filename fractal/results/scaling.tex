@@ -81,6 +81,34 @@ y_{ul} &= y_0 + \frac{N}{2Z} - \frac{1}{2Z} \qquad &y_{lr} = y_0 - \frac{N}{2Z} 
 Generally, $Z>>1$ so that the $1/(2Z)$ terms can be ignored.
 
 If we desire a box around the center point $(x_0,y_0)$ of width, height $(W,H) = (\alpha H, H)$, where $\alpha$ is the aspect ratio, and we choose pixel array $(\alpha M, M)$, then $Z= M / H = \alpha M / W$. 
-\section{Time segments}
-Timing the threads ... 
+\section{Timing}
+On the GPU, chunks of work are broken up into parallel threads, with groups of $T=1024$ threads arranged per block/core. The K20c has $B=2096$ cores. To understand how long it will take any particular parallel chunk of work to run, we then consider the time it takes to run each thread, assuming the threads are approximately the same amount of work. We will deal with issues of thread/core code launching,  and thread synchronization later. 
+
+In general, for large problems, there will be more than $B\times T$ chunks of work to perform, and inside each thread there will be a loop (possibly containing nested loops) of size $kl$ (pixels/thread in this case), allowing us an amount $N$ of work chunks, so $N = kl\times B \times T$. For the moment we will assume that $N$ chunks could be queued at once across $B\times T$ parallel threads, and the time to perform the queued chunks is the same as looping without queuing. 
+
+We wish to compute the time it then takes to run a thread, $\Delta t_{th}$. Let
+\begin{align}
+&\Delta t_{core}(B) &=& \hbox{\rm time to setup $B$ cores}\hfill\\
+&\Delta t_{thread}(T) &=& \hbox{\rm time to launch and complete $T$ threads on each core}\\
+&\Delta t_{shared} &=& \hbox{\rm time to run shared code that each thread must run}\\
+&\Delta t_{loop} &=& \hbox{\rm time to run one (outermost) for loop in the thread}
+\end{align}
+Then 
+\begin{align}
+\Delta t_{th} &= \Delta t_{core}  + \Delta t_{thread}  + \Delta t_{shared}  + kl \cdot\Delta t_{loop} \\
+&= \Delta t_{core}  + \Delta t_{thread}  + \Delta t_{shared}  + \frac{N}{B \cdot T} \cdot\Delta t_{loop}
+\end{align}
+If we assume for the moment that $ \Delta t_{const} =\Delta t_{core}  + \Delta t_{thread}  + \Delta t_{shared} $ is a constant independent of $B,T$, then
+\begin{align}
+\Delta t_{th} &= \Delta t_{const}  + kl \cdot\Delta t_{loop} \\
+&= \Delta t_{const}   + \frac{N}{B \cdot T} \cdot\Delta t_{loop}
+\end{align}
+and if $ \Delta t_{const} << kl \cdot\Delta t_{loop} $, then 
+\begin{align}
+\log_{10}\Delta t_{th} &\approx \log_{10} \Delta t_{loop} +  \log_{10} kl \\
+&\approx \log_{10} \Delta t_{loop}   + \log_{10} \frac{N}{B} - \log_{10} T  \\
+&\approx \log_{10} \Delta t_{loop}   + \log_{10} \frac{N}{T} - \log_{10} B
+\end{align}
+while $\log_{10} \Delta t_{th} \approx  \log_{10} \Delta t_{const} = \hbox{\rm constant}$ when $\Delta t_{const} >> kl \cdot\Delta t_{loop} $.
+In the small $ \Delta t_{const}$ case, the plot of $\log_{10} \Delta t_{th}$ vs pixels-per-thread $\log_{10} kl$ is linear with slope $+1$ (and intercept $\log_{10} \Delta t_{loop} $), while vs $\log_{10} B$, $\log_{10} T$ it is slope $-1$ (and intercept $\log_{10} N/(B,T)$). 
 \end{document}
