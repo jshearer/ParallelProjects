@@ -50,20 +50,20 @@
 \maketitle
 
 \section{Purpose}
-
 We estimate the time required to run the CUDA fractal kernel as a function of the number of computational threads and associated variables.
 
-\subsection{Time segments}
-
-...
-
 \section{Fractal algorithm}
-The main fractal algorithm is written in pycuda. The transformation from pixel space to position space is as follows:
+The main fractal algorithm is written in pycuda. The transformation from pixel space to position space is as follows; assuming $M,N$ are even:
 \begin{align}
-x &= x_0 + \frac{m-M/2}{Z}  \\
-y &= y_0 - \frac{n-N/2}{Z}
+\begin{pmatrix}x\\y\end{pmatrix} &= \begin{pmatrix}x_0\\y_0\end{pmatrix}
++\frac{1}{2Z}\begin{pmatrix}-M\\\phantom{-}N\end{pmatrix}
++\frac{1}{2Z}\begin{pmatrix}\phantom{-}1\\-1\end{pmatrix}
++\frac{1}{Z}\begin{pmatrix}\phantom{-}m\\-n\end{pmatrix}\\
+\noalign{\vbox{}}
+ &= \begin{pmatrix}x_0\\y_0\end{pmatrix}
+ +\frac{1}{2Z}\begin{pmatrix}-M+2m+1\\\phantom{-}N-2m-1\end{pmatrix}
 \end{align}
-where
+where, in (1) on the right,  the first term represents the displacement of the center of the pixel array, the second term is the displacement from the center to the upper left corner, the third term is a half-pixel step into the center of the pixel, and the fourth term is the displacement from the center of the upper left pixel to the center of the pixel in question, and 
 \begin{align*}
 x_0 &= \hbox{\rm position.x}\\
 y_0 &= \hbox{\rm position.y}\\
@@ -71,11 +71,16 @@ M &= \hbox{\rm dimension.x}\\
 N &= \hbox{\rm dimension.y}\\
 m &= \hbox{\rm pixel x coordinate, from top left}\\
 n &= \hbox{\rm pixel y coordinate, from top left}\\
-Z &= \hbox{\rm zoom}
+Z &= \hbox{\rm zoom.}
 \end{align*}
-So the upper left / lower right corner is, with $m,n=0,0\ /\ M-1, N-1$:
+In this case the upper left ($ul$) / lower right ($lr$) corner is, with $m,n=0,0\ /\ M-1, N-1$:
 \begin{align}
-x_{ul} &= x_0 - \frac{M}{2Z}  \\
-y_{ul} &= y_0 + \frac{N}{2Z}
+x_{ul} &= x_0 - \frac{M}{2Z} + \frac{1}{2Z} \qquad &x_{lr} = x_0 + \frac{M}{2Z} - \frac{1}{2Z} \\
+y_{ul} &= y_0 + \frac{N}{2Z} - \frac{1}{2Z} \qquad &y_{lr} = y_0 - \frac{N}{2Z} + \frac{1}{2Z}
 \end{align}
+Generally, $Z>>1$ so that the $1/(2Z)$ terms can be ignored.
+
+If we desire a box around the center point $(x_0,y_0)$ of width, height $(W,H) = (\alpha H, H)$, where $\alpha$ is the aspect ratio, and we choose pixel array $(\alpha M, M)$, then $Z= M / H = \alpha M / W$. 
+\section{Time segments}
+Timing the threads ... 
 \end{document}
