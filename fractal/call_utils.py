@@ -27,5 +27,5 @@ def callCUDA(position, zoom, dimensions, name, iterations=100,scale=1,save=True,
     result,time,block,thread = cuda_f.GenerateFractal(dimensions,position,zoom,iterations,silent=True,
                                                       debug=False,action=mode,scale=scale,block=block,thread=thread)
     if save:
-        render.SaveToPngThread(result,"cuda_mode"+str(mode)+"-"+name,render.colors['default'],silent=False)
+        render.SaveToPng(result,"cuda_mode"+str(mode)+"-"+name,render.colors['default'],silent=False)
     return (result,time,block,thread)

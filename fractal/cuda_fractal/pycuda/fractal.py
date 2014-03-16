@@ -6,7 +6,7 @@ import locale
 locale.setlocale(locale.LC_ALL, 'en_US.UTF_8')
 
 import pycuda.driver as cuda
-#import pycuda.autoinit
+import pycuda.autoinit
 from pycuda.compiler import SourceModule
 
 # for debugging
