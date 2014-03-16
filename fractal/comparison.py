@@ -8,8 +8,9 @@ def runComparison(name,iterations=100,save=True):
         
     cpuTime = call_utils.callCPU(position,zoom,dimensions,name,iterations,save=save)
     try:
-        cudaTime = call_utils.callCUDA(position,zoom,dimensions,name,iterations,block=block,thread=thread,save=save)
-    except:
+        results,cudaTime, retblock, retthread = call_utils.callCUDA(position,zoom,dimensions,name,iterations,block=block,thread=thread,save=save)
+    except Exception, e:
+        print e
         cudaTime = 'NA'
         pass
 
@@ -56,8 +57,8 @@ if __name__ == '__main__':
     ## So in the complex plane, the top left corner of the image would map to -2 - 1/2i
 
 
-    position = [0,0]           # centers the view????
-    dimensions = [2048, 2048]   # H, W !!!!  this affects the area covered
+    position = [-1,0]           # centers the view????
+    dimensions = [1024, 2048]   # H, W !!!!  this affects the area covered
     zoom = 500                  # some kind of zoom???
     modeL = (0,1) # range(0,5)
     
@@ -65,6 +66,6 @@ if __name__ == '__main__':
         runTiming()
 
     if options.runC:
-        block=(5,5,1)
-        thread=(1,1,1)
+        block=32
+        thread=32
         runComparison('Check1', save=options.save)
