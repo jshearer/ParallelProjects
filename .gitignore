@@ -3,3 +3,4 @@
 *.pyo
 *.o
 *.h5
+.directory

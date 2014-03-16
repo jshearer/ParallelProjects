@@ -86,6 +86,10 @@ def remap(X,A,B,C,D):
 
     return (float(X)-A)/(B-A) * (float(D)-C) + float(C)
 
+# this was in cpu_fractal::fractal_2.py
+def savepng(result,name,silent=False):
+	result = numpy.rot90(result)
+	Image.fromarray(result,"RGB").save(name+".png")
 
 
 # colors = {

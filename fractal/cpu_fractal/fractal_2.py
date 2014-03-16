@@ -1,10 +1,6 @@
 #!/usr/bin/python2
-import os
 from multiprocessing import Pool
-import utils
-from PIL import Image
 import numpy
-import argparse
 from Vector import Vector
 import sys
 import time
@@ -49,7 +45,8 @@ def gen(position,zoom,dimensions,scale=1,squaresize=50,processes=4,silent=False,
 	scale = 1.0/scale
 	procPool = Pool(processes=processes)
 
-	#to correct, not sure why the problem occurs in the first place.
+	# TODO: to correct, not sure why the problem occurs in the first place.
+    # Les: issue of array layout vs pixel (numpy arrays are indexed row, column???
 	position.reverse()
 	dimensions.reverse()
 	zoom = zoom/scale
@@ -63,8 +60,12 @@ def gen(position,zoom,dimensions,scale=1,squaresize=50,processes=4,silent=False,
 	
 	result = numpy.zeros((dimensions[0],dimensions[1]))
 
-	num_completed = {'done':0,'total':0} #This hack is nessecary because python 2 doesn't have the nonlocal keyword, so callback() couldn't modify num_completed if it were just an int.
-						#Apparently, single element arrays work as a replacement...
+    # TODO: not true, use 'global' keyword, or is the issue across many processes?
+    # This hack is nessecary because python 2 doesn't have the
+    # nonlocal keyword, so callback() couldn't modify num_completed if
+    # it were just an int.
+	num_completed = {'done':0,'total':0} 
+    # Apparently, single element arrays work as a replacement...
 
 	def callback(data): #should find a better numpy-way to do this...
 
@@ -100,7 +101,3 @@ def gen(position,zoom,dimensions,scale=1,squaresize=50,processes=4,silent=False,
 	procPool.join()
 	return result
 
-def savepng(result,name,silent=False):
-	result = numpy.rot90(result)
-
-	Image.fromarray(result,"RGB").save(name+".png")

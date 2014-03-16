@@ -25,13 +25,15 @@ class OverlapExecution(tab.IsDescription):
     overlap           = tab.Int64Col()
     time              = tab.Float64Col()
 
+mode_identifier = {0:'write',1:'read+write',2:'no_rw', 3:'atomicAdd+write',4:'Overlap'}[mode]
+    
 class MetaData(tab.IsDescription):
     pos_x             = tab.Float64Col()
     pos_y             = tab.Float64Col()
     zoom              = tab.Float32Col()
     dimensions_x      = tab.Int32Col()
     dimensions_y      = tab.Int32Col()
-    mode              = tab.UInt8Col()
+    mode              = tab.UInt8Col()  # should be a string for easier comprehension. 
     iterations        = tab.Int32Col()
 
 def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):

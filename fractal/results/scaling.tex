@@ -82,7 +82,7 @@ Generally, $Z>>1$ so that the $1/(2Z)$ terms can be ignored.
 
 If we desire a box around the center point $(x_0,y_0)$ of width, height $(W,H) = (\alpha H, H)$, where $\alpha$ is the aspect ratio, and we choose pixel array $(\alpha M, M)$, then $Z= M / H = \alpha M / W$. 
 \section{Timing}
-On the GPU, chunks of work are broken up into parallel threads, with groups of $T=1024$ threads arranged per block/core. The K20c has $B=2096$ cores. To understand how long it will take any particular parallel chunk of work to run, we then consider the time it takes to run each thread, assuming the threads are approximately the same amount of work. We will deal with issues of thread/core code launching,  and thread synchronization later. 
+On the GPU, chunks of work are broken up into parallel threads, with groups of $T<=1024$ threads arranged per block/core. The K20c has $B=2496$ cores. To understand how long it will take any particular parallel chunk of work to run, we then consider the time it takes to run each thread, assuming the threads are approximately the same amount of work. We will deal with issues of thread/core code launching,  and thread synchronization later. 
 
 In general, for large problems, there will be more than $B\times T$ chunks of work to perform, and inside each thread there will be a loop (possibly containing nested loops) of size $kl$ (pixels/thread in this case), allowing us an amount $N$ of work chunks, so $N = kl\times B \times T$. For the moment we will assume that $N$ chunks could be queued at once across $B\times T$ parallel threads, and the time to perform the queued chunks is the same as looping without queuing. 
 
