@@ -4,8 +4,8 @@ NoSuchNodeError = tab.exceptions.NoSuchNodeError
 
 _data_file = None  # module private
 
-class Execution(tab.IsDescription):
-    index             = tab.Int32Col()
+class ExecutionData(tab.IsDescription):
+    metaIndexFK       = tab.Int32Col()
     block_x           = tab.Int32Col()
     block_y           = tab.Int32Col()
     blocks            = tab.Int32Col()
@@ -14,6 +14,19 @@ class Execution(tab.IsDescription):
     threads           = tab.Int32Col()
     overlap           = tab.Int64Col()
     time              = tab.Float64Col()
+
+
+# TODO: add these!!!
+# git commit/hash
+# version info
+# frozen library data
+# os?
+class VersionInfo(tab.IsDescription):
+    code_git           = tab.StringCol(64)
+    nvidia             = tab.StringCol(64)
+    cuda               = tab.StringCol(64)
+    os                 = tab.StringCol(64)
+    gcc_python         = tab.StringCol(64)
 
 mode_identifier = {0:'write',1:'read+write',2:'no_rw', 3:'atomicAdd+write',4:'Overlap'}
     
@@ -27,6 +40,29 @@ class MetaData(tab.IsDescription):
     mode              = tab.UInt8Col()  # should be a string for easier comprehension. 
     iterations        = tab.Int32Col()
 
+    VersionInfo()
+
+class PairedDataStorage(object):
+    @classmethod
+    def cudaCollect(cls, kwdD):
+        pass
+
+    @classmethod
+    def init(cls):
+        pass
+
+    @classmethod
+    def alreadyRan(cls, kwdD):
+        pass
+
+    @classmethod
+    def extractCols(cls):
+        pass
+
+    @classmethod
+    def extractMetaData(cls):
+        pass
+    
 # TODO: we should supply data as dicts, or allied, so we can automagically populate rows
 def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
     """
@@ -44,10 +80,7 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
 
     # TODO: get rid of the explicit Overlap N stuff, mode tells us all
     # we need to know.
-    if overlap:
-        grp = _data_file.createGroup(getGroup(),"Overlap"+str(nExec), "Overlap run "+str(nExec+1))
-    else:
-        grp = _data_file.createGroup(getGroup(),str(nExec), "Execution number "+str(nExec+1))
+    grp = _data_file.createGroup(getGroup(),str(nExec), "Execution number "+str(nExec+1))
         
     meta = _data_file.createTable(grp,"meta",MetaData,"Metadata")
 
@@ -58,21 +91,16 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
     meta.row['zoom'] = zoom
     meta.row['mode'] = mode
     meta.row['iterations'] = iterations
-    # TODO: add these!!!
-    # git commit/hash
-    # version info
-    # frozen library data
-    # os?
+
 
     meta.row.append()
     meta.flush()
-    if overlap:
-        data = _data_file.createTable(grp,"data",OverlapExecution,"Real data")   
-    else:
-        data = _data_file.createTable(grp,"data",Execution,"Real data")
+    # wont need this with paired class
+    data = _data_file.createTable(grp,"data",Execution,"Real data")
 
     for block in execData['blocks']:
-        for thread in execData['threads']:              
+        for thread in execData['threads']:
+            # check to see if we have done this combo already for the given metadata      
             try:
                 name=str(block)+", "+str(thread)
                 result,time,block_dim,thread_dim = callCUDA(position,zoom,dimensions,name,
@@ -210,7 +238,7 @@ if __name__ == '__main__':
             row['index'] = i
             row.append()
             for j in range(3):
-                drow['index'] = i
+                drow['metaIndexFK'] = i
                 drow['block_x'] = 1000+j
                 drow['block_y'] = 1000+j
                 drow['blocks'] = 1000+j
