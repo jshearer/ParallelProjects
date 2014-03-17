@@ -12,22 +12,13 @@ class Execution(tab.IsDescription):
     thread_x          = tab.Int32Col()
     thread_y          = tab.Int32Col()
     threads           = tab.Int32Col()
-    time              = tab.Float64Col()
-
-class OverlapExecution(tab.IsDescription):
-    index             = tab.Int32Col()
-    block_x           = tab.Int32Col()
-    block_y           = tab.Int32Col()
-    blocks            = tab.Int32Col()
-    thread_x          = tab.Int32Col()
-    thread_y          = tab.Int32Col()
-    threads           = tab.Int32Col()
     overlap           = tab.Int64Col()
     time              = tab.Float64Col()
 
-mode_identifier = {0:'write',1:'read+write',2:'no_rw', 3:'atomicAdd+write',4:'Overlap'}[mode]
+mode_identifier = {0:'write',1:'read+write',2:'no_rw', 3:'atomicAdd+write',4:'Overlap'}
     
 class MetaData(tab.IsDescription):
+    index             = tab.Int32Col()    
     pos_x             = tab.Float64Col()
     pos_y             = tab.Float64Col()
     zoom              = tab.Float32Col()
@@ -36,6 +27,7 @@ class MetaData(tab.IsDescription):
     mode              = tab.UInt8Col()  # should be a string for easier comprehension. 
     iterations        = tab.Int32Col()
 
+# TODO: we should supply data as dicts, or allied, so we can automagically populate rows
 def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
     """
     Run callCUDA over a range of block and thread shapes and sizes, and collect data on time spent. 
@@ -50,6 +42,8 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
 
     nExec = len(_data_file.listNodes(getGroup()))
 
+    # TODO: get rid of the explicit Overlap N stuff, mode tells us all
+    # we need to know.
     if overlap:
         grp = _data_file.createGroup(getGroup(),"Overlap"+str(nExec), "Overlap run "+str(nExec+1))
     else:
@@ -113,23 +107,25 @@ def alreadyRan(position,dimensions,zoom,mode):
     global _data_file
     _init()
 
-    # TODO: replace this with a tables search
-    for node in _data_file.walkNodes('/execSets'):
-        pos_x = (node.meta['pos_x']==position[0])
-        pos_y = (node.meta['pos_y']==position[1])
-        pos = pos_x and pos_y
-
-        dim_x = (node.meta['dimensions_x']==dimensions[0])
-        dim_y = (node.meta['dimensions_y']==dimensions[1])
-        dim = dim_x and dim_y
-
-        zoom_check = (node.meta['zoom']==zoom)
-        mode_check = (node.meta['mode']==mode)
+    foundL = []
+    # isnt there a public func for _f_list_nodes()???
+    # TODO: can go straight to the right node eventually and search ROWS of meta data
+    nodeL = _data_file.root.execSets._f_list_nodes()
     
-        if pos and dim and zoom_check and mode_check:
-            return True
-
-    return False
+    tupL = (dimensions[0], dimensions[1], mode, position[0], position[1], zoom)
+    # NOTE!!!!: the condx string very sensitive. when i replaced a '&' with 'and', all rows were taken!!!
+    condS = "(dimensions_x==%d) & (dimensions_y==%d) & (mode == %d) & (pos_x == %f) & (pos_y == %f) & (zoom == %f)"%tupL
+    print condS
+    for node in nodeL:
+        # node.meta is a table, search it
+        for row in node.meta.where(condS):
+            print row['dimensions_x'], row['dimensions_y'], row['mode'],  row['pos_x'], row['pos_y'],  row['zoom']
+            foundL.append(node)
+            # we need only know that at least one row in the metadata meets condx
+            # TODO: later we can clean this up when we clean up the table structure
+            break 
+        
+    return foundL
 
 def extractCols(nExec):
     global _data_file
@@ -183,8 +179,54 @@ def _init():
         filename = "fractalData.h5"
         _data_file = tab.openFile(filename,mode='a',title="Fractal timing data")
         if not ("/execSets" in _data_file):
-            _data_file.createGroup("/","execSets","Sets of execution with varying position,zoom,dimensions,blockData, or threadData")
+            desc = "Sets of execution with varying position,zoom,dimensions,blockData, or threadData"
+            _data_file.createGroup("/","execSets",desc)
 
 if __name__ == '__main__':
-    
-    print extractMetaData()
+
+    if 0:
+        print extractMetaData()
+
+    if 1:
+        newFile = tab.openFile('newFractalData.h5', mode='w', title='New Fractal timing data')
+        grp = newFile.create_group("/", 'TimingData', 'Timing data for parallel execution')
+        table = newFile.create_table('/TimingData', 'meta', MetaData, 'Fractal timing meta data')
+        table = newFile.create_table('/TimingData', 'data', Execution, 'Fractal timing data')        
+
+    if 1:
+        _newFile = tab.openFile('newFractalData.h5', mode='a', title='New Fractal timing data')        
+        theMetaTable = _newFile.root.TimingData.meta
+        theDataTable = _newFile.root.TimingData.data   
+        row = theMetaTable.row
+        drow = theDataTable.row
+        for i in range(2):
+            row['dimensions_x'] = 20+i
+            row['dimensions_y'] = 30+i
+            row['iterations'] = 100+i
+            row['mode'] = 2+i
+            row['pos_x']= 2.1
+            row['pos_y']= 1.7
+            row['zoom']=900.
+            row['index'] = i
+            row.append()
+            for j in range(3):
+                drow['index'] = i
+                drow['block_x'] = 1000+j
+                drow['block_y'] = 1000+j
+                drow['blocks'] = 1000+j
+                drow['thread_x'] = 1000+j
+                drow['thread_y'] = 1000+j
+                drow['threads'] = 1000+j
+                drow['time'] = 2.1+float(j)/3
+                drow.append()
+
+
+        theMetaTable.flush()
+        theDataTable.flush()        
+        
+        
+    if 0:
+        
+        res= alreadyRan( (-1.3,0.0), (2000, 1000), 900., 4)
+        print res
+
