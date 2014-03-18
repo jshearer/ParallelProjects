@@ -1,9 +1,9 @@
 import call_utils
-import fractal_data
+import fractal_data #Put these here to avoid the pesky "Compiled and got function Gen" lag from compiling the kernel
 import plot_data
 
 def runComparison(arguments):
-    print "Comparing parameters for (" +(str(argumentsself.name) if arguments.save else "")+ "): ( (" +str(arguments.pos[0])+","+str(arguments.pos[1])+"), ",
+    print "Comparing parameters for (" +(str(arguments.name) if arguments.save else "")+ "): ( (" +str(arguments.pos[0])+","+str(arguments.pos[1])+"), ",
     print str(arguments.zoom)+", ("+str(arguments.dim[0])+", "+str(arguments.dim[1])+") )"
         
     cpuTime = call_utils.callCPU(arguments.pos,arguments.zoom,arguments.dim,arguments.name,iterations=arguments.iter,save=arguments.save)
@@ -22,6 +22,8 @@ def runTiming(arguments):
     execData = {'blocks':arguments.blocks,
                 'threads':arguments.threads}
 
+    print("Doing timing run, execData: "+str(execData))
+
     for mode in arguments.modes:
         print "Mode "+str(mode)+":"
         nExec=None
@@ -32,10 +34,13 @@ def runTiming(arguments):
 
 def runGeneration(arguments):
     if arguments.procCuda:
+        print("Doing generation ("+arguments.name+") using CUDA")
+
         result, time, blocks, threads = call_utils.callCUDA(arguments.pos,arguments.zoom,arguments.dim,arguments.name,iterations=arguments.iter,
             block=arguments.blocks,thread=arguments.threads,save=arguments.save)
 
     elif arguments.procCpu:
+        print("Doing generation ("+arguments.name+") using the CPU")
         time = call_utils.callCPU(arguments.pos,arguments.zoom,arguments.dim,arguments.name,iterations=arguments.iter,save=arguments.save)
 
     print "("+("CUDA" if arguments.procCuda else "CPU")+") run took "+str(time)+"s."        
@@ -80,23 +85,8 @@ if __name__ == '__main__':
     gen_parser.add_argument("--save","-s",     action="store_true", dest="save",     default=False,      help="If set, will save to file specified by --name")
 
     args = parser.parse_args()
+
+    print("Doing ("+args.func.__name__+") run. Position: "+str(args.pos)+", Dimensions: "+str(args.dim)+", Zoom: "+str(args.zoom)+", Iterations: "+str(args.iter))
+
     args.func(args)
 
-    #parser.add_argument("--timing",           action="store_true", dest="runT", default=False,       help="Run the timing mode")
-    #parser.add_argument("--comparison",       action="store_true", dest="runC", default=False,       help="Run the comparison mode")    
-    #parser.add_argument("--show",             action="store_true", dest="show", default=False,       help="Display plot if DISPLAY is set")
-    #parser.add_argument("--save",             action="store_true", dest="save", default=False,       help="Store plot as PNG")
-    #parser.add_argument("--generate","-gen",  action="store_true", dest="gen",  default=False,       help="Generate a fractal")
-    #parser.add_argument("--mode","-m",        action="store",      dest="mode", default=0)
-    #parser.add_argument("--output","-o",      action="store",      dest="name")
-
-    # TODO: can convert these to options as well
-
-    ## Each pixel (x,y) in the generated image is
-    ## ((((x*zoom)-(dimensions.x/2))/zoom) + position.x) + ((((y*zoom)-(dimensions.y/2))/zoom) + position.y) i
-    ## 
-    ## So, for example. Position = [-1,0] Dimensions = [2000,1000], zoom = 1000.
-    ## Top left corner: x=0, y=0.
-    ## (Real part:) 0*1000 - (2000/2)/1000 + -1 = -1 - 1 = -2
-    ## (Imag part:) 0*1000 - (1000/2)/1000 + 0 = -500/1000 = - 1/2i
-    ## So in the complex plane, the top left corner of the image would map to -2 - 1/2i
