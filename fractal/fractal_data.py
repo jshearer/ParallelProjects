@@ -187,8 +187,10 @@ def extractMetaData():
     _init()
 
     metaD={}
+    colnames = _data_file.root.TimingData.meta.colnames
     for meta in _data_file.root.TimingData.meta:
-        metaD[name] = { key:meta[key] for key in meta.colnames}
+        fk = meta['index']
+        metaD[fk] = { key:meta[key] for key in colnames}
 
     return metaD
     
@@ -264,3 +266,4 @@ if __name__ == '__main__':
 
         print  extractCols(0)
         print  extractCols(1)
+        print extractMetaData()
