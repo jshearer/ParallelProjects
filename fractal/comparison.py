@@ -18,8 +18,8 @@ def runComparison(name,iterations=100,save=True):
     print "CUDA ran in "+str(cudaTime)+"s"
 
 def runTiming():
-    execData = {'blocks':range(1,2049),
-                'threads':range(1,1025)}
+    execData = {'blocks':range(1,64),
+                'threads':range(1,32)}
 
     for mode in modeL:
         print "Mode "+str(mode)+":"
@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     position = [-1.3,0]           # centers the view????
     dimensions = [2048, 1024]   # H, W !!!!  this affects the area covered
-    zoom = 900                  # some kind of zoom???
+    zoom = 900.0                # some kind of zoom???
     modeL = (0,) # range(0,5)
     
     if options.runT:

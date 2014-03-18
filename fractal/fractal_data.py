@@ -23,11 +23,13 @@ class ExecutionData(tab.IsDescription):
 # frozen library data
 # os?
 class VersionInfo(tab.IsDescription):
-    code_git           = tab.StringCol(64)
-    nvidia             = tab.StringCol(64)
-    cuda               = tab.StringCol(64)
     os                 = tab.StringCol(64)
     gcc_python         = tab.StringCol(64)
+    nvidia             = tab.StringCol(64)
+    cuda               = tab.StringCol(64)
+    pycuda             = tab.StringCol(64)
+    pytables           = tab.StringCol(64)
+    code_git           = tab.StringCol(64)
 
     
 class MetaData(tab.IsDescription):
@@ -110,6 +112,7 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
             # TODO: check to see if we have done this combo already for the given metadata      
             try:
                 name=str(block)+", "+str(thread)
+                print name
                 result,time,block_dim,thread_dim = callCUDA(position,zoom,dimensions,name,
                                                             block=block,thread=thread,save=False,mode=mode)
             except ValueError:
@@ -198,19 +201,19 @@ def init(filename='fractalData.h5'):
     global _data_file
 
     if _data_file == None:
-        _data_file = tab.openFile(filename,mode='a',title="Fractal timing data")
+        _data_file = tab.openFile(filename, mode='a',title="Fractal timing data")
 
     if not ("/TimingData" in _data_file):
         print 'Creating top level folder'
-        grp = _data_file.create_group("/", 'TimingData', 'Timing data for parallel execution')
+        grp = _data_file.createGroup("/", 'TimingData', 'Timing data for parallel execution')
 
     if not ("/TimingData/data" in _data_file.root):
         print 'Creating data folder'        
-        _data_file.create_table('/TimingData', 'data', ExecutionData, 'Fractal timing data')
+        _data_file.createTable('/TimingData', 'data', ExecutionData, 'Fractal timing data')
         
     if not ("/TimingData/meta" in _data_file.root):
         print 'Creating meta folder'
-        _data_file.create_table('/TimingData', 'meta', MetaData, 'Fractal timing meta data')
+        _data_file.createTable('/TimingData', 'meta', MetaData, 'Fractal timing meta data')
 
 def build_table(tableN, populate=True):
     global _data_file
@@ -255,16 +258,16 @@ def build_table(tableN, populate=True):
 
 if __name__ == '__main__':
 
-    if 1:
+    if 0:
         build_table('fractalData.h5', populate=True)
         
-    if 0:
+    if 1:
         init()
         res= alreadyRan( (2.1,1.7), (20, 30), 900., 2)
         if res: print extractCols(res)
 
-        print  extractCols(0)
         print  extractCols(1)
+        print  extractCols(2)
         print extractMetaData()
 
     if 1:
