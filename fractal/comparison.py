@@ -28,7 +28,7 @@ def runTiming():
             nExec = fractal_data.cudaCollect(position,zoom,dimensions,execData,mode=mode)
         except Exception, e:
             print e
-
+            raise
         if options.show and nExec:
             data = fractal_data.extractCols(nExec)
             plot_data.makePlot(data,"results/", ylog=True, show=True, save=False)
@@ -57,12 +57,13 @@ if __name__ == '__main__':
     ## So in the complex plane, the top left corner of the image would map to -2 - 1/2i
 
 
-    position = [-1,0]           # centers the view????
-    dimensions = [1024, 2048]   # H, W !!!!  this affects the area covered
-    zoom = 500                  # some kind of zoom???
-    modeL = (0,1) # range(0,5)
+    position = [-1.3,0]           # centers the view????
+    dimensions = [2048, 1024]   # H, W !!!!  this affects the area covered
+    zoom = 900                  # some kind of zoom???
+    modeL = (0,) # range(0,5)
     
     if options.runT:
+        fractal_data.init()
         runTiming()
 
     if options.runC:

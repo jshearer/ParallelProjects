@@ -1,4 +1,5 @@
 import tables as tab
+import numpy as np
 
 NoSuchNodeError = tab.exceptions.NoSuchNodeError
 
@@ -28,7 +29,6 @@ class VersionInfo(tab.IsDescription):
     os                 = tab.StringCol(64)
     gcc_python         = tab.StringCol(64)
 
-mode_identifier = {0:'write',1:'read+write',2:'no_rw', 3:'atomicAdd+write',4:'Overlap'}
     
 class MetaData(tab.IsDescription):
     index             = tab.Int32Col()    
@@ -41,6 +41,11 @@ class MetaData(tab.IsDescription):
     iterations        = tab.Int32Col()
 
     versioninfo = VersionInfo()
+
+    # TODO: what kind of attributes can we add here. when i tried to
+    # add mode_identifier it balked when building the table
+    
+mode_identifier = {0:'write',1:'read+write',2:'no_rw', 3:'atomicAdd+write',4:'Overlap'}
 
 class PairedDataStorage(object):
     @classmethod
@@ -62,45 +67,47 @@ class PairedDataStorage(object):
     @classmethod
     def extractMetaData(cls):
         pass
+
+def _get_new_meta_index():
+    meta = _data_file.root.TimingData.meta
+    if meta.nrows == 0:
+        return 1
+    # TODO: is there a get column operation???
+    indexL = [row['index'] for row in meta]
+    indexL.sort()
+    newIndex = indexL[-1]+1
+    return newIndex
+    
     
 # TODO: we should supply data as dicts, or allied, so we can automagically populate rows
 def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
     """
     Run callCUDA over a range of block and thread shapes and sizes, and collect data on time spent. 
     """
+    # keep here so we only compile as needed
     from call_utils import callCUDA
+    
     global _data_file
+    data = _data_file.root.TimingData.data
+    meta = _data_file.root.TimingData.meta
 
-    _init()
-
-    #Only compile the function when we need to
-    overlap = (mode==4)
-
-    nExec = len(_data_file.listNodes(getGroup()))
-
-    # TODO: get rid of the explicit Overlap N stuff, mode tells us all
-    # we need to know.
-    grp = _data_file.createGroup(getGroup(),str(nExec), "Execution number "+str(nExec+1))
-        
-    meta = _data_file.createTable(grp,"meta",MetaData,"Metadata")
-
-    meta.row['pos_x'] = position[0]
-    meta.row['pos_y'] = position[1]
-    meta.row['dimensions_x'] = dimensions[0]
-    meta.row['dimensions_y'] = dimensions[1]
-    meta.row['zoom'] = zoom
-    meta.row['mode'] = mode
-    meta.row['iterations'] = iterations
-
-
-    meta.row.append()
-    meta.flush()
-    # wont need this with paired class
-    data = _data_file.createTable(grp,"data",Execution,"Real data")
+    index = alreadyRan(position, dimensions, zoom, mode)
+    if not index:
+        # need a new entry
+        index = _get_new_meta_index()
+        meta.row['pos_x'] = position[0]
+        meta.row['pos_y'] = position[1]
+        meta.row['dimensions_x'] = dimensions[0]
+        meta.row['dimensions_y'] = dimensions[1]
+        meta.row['zoom'] = zoom
+        meta.row['mode'] = mode
+        meta.row['iterations'] = iterations
+        meta.row.append()
+        meta.flush()
 
     for block in execData['blocks']:
         for thread in execData['threads']:
-            # check to see if we have done this combo already for the given metadata      
+            # TODO: check to see if we have done this combo already for the given metadata      
             try:
                 name=str(block)+", "+str(thread)
                 result,time,block_dim,thread_dim = callCUDA(position,zoom,dimensions,name,
@@ -110,9 +117,6 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
 
             print "GOOD \t"+str(block)+", "+str(thread)+": "+str(time)
             
-            if overlap:     
-                data.row['overlap'] = calculateOverlap(result)
-        
             data.row['time'] = time
             data.row['index'] = len(data)
             data.row['block_x'] = block_dim[0]
@@ -121,22 +125,20 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
             data.row['thread_x'] = thread_dim[0]
             data.row['thread_y'] = thread_dim[1]
             data.row['threads'] = thread
-            
+            if mode==4:     
+                data.row['overlap'] = np.sum(result)-(result.shape[0]*result.shape[1])
+            else:
+                data.row['overlap']=0
+            data.row['metaIndexFK'] = index
 
             data.row.append()
             data.flush()
-    return nExec
-
-def calculateOverlap(result):
-    import numpy as np
-    return np.sum(result)-(result.shape[0]*result.shape[1])
+            
+    return index
 
 def alreadyRan(position,dimensions,zoom,mode):
     global _data_file
-    _init()
 
-    # isnt there a public func for _f_list_nodes()???
-    # TODO: can go straight to the right node eventually and search ROWS of meta data
     mtable = _data_file.root.TimingData.meta
     
     tupL = (dimensions[0], dimensions[1], mode, position[0], position[1], zoom)
@@ -154,7 +156,6 @@ def alreadyRan(position,dimensions,zoom,mode):
 
 def extractCols(nExec):
     global _data_file
-    _init()
 
     meta = _data_file.root.TimingData.meta
     data = _data_file.root.TimingData.data
@@ -184,7 +185,6 @@ def extractCols(nExec):
 
 def extractMetaData():
     global _data_file    
-    _init()
 
     metaD={}
     colnames = _data_file.root.TimingData.meta.colnames
@@ -194,76 +194,79 @@ def extractMetaData():
 
     return metaD
     
-def getGroup():
-    global _data_file
-    _init()
-    return _data_file.root.TimingData
-
-def _init():
+def init(filename='fractalData.h5'):
     global _data_file
 
     if _data_file == None:
-        filename = "fractalData.h5"
         _data_file = tab.openFile(filename,mode='a',title="Fractal timing data")
-        if not ("/TimingData" in _data_file):
-            grp = newFile.create_group("/", 'TimingData', 'Timing data for parallel execution')
-            table = newFile.create_table('/TimingData', 'meta', MetaData, 'Fractal timing meta data')
-            table = newFile.create_table('/TimingData', 'data', ExecutionData, 'Fractal timing data')        
 
+    if not ("/TimingData" in _data_file):
+        print 'Creating top level folder'
+        grp = _data_file.create_group("/", 'TimingData', 'Timing data for parallel execution')
+
+    if not ("/TimingData/data" in _data_file.root):
+        print 'Creating data folder'        
+        _data_file.create_table('/TimingData', 'data', ExecutionData, 'Fractal timing data')
+        
+    if not ("/TimingData/meta" in _data_file.root):
+        print 'Creating meta folder'
+        _data_file.create_table('/TimingData', 'meta', MetaData, 'Fractal timing meta data')
+
+def build_table(tableN, populate=True):
+    global _data_file
+    
+    init(tableN)
+    
+    if not populate: return 
+        
+    theMetaTable = _data_file.root.TimingData.meta
+    theDataTable = _data_file.root.TimingData.data   
+    row = theMetaTable.row
+    drow = theDataTable.row
+    for ii in range(3):
+        i = _get_new_meta_index()
+        row['dimensions_x'] = 20+i
+        row['dimensions_y'] = 30+i
+        row['iterations'] = 100+i
+        row['mode'] = 2+i
+        row['pos_x']= 2.1
+        row['pos_y']= 1.7
+        row['zoom']=900.
+        row['versioninfo/code_git'] = 'brand new'
+        row['versioninfo/nvidia'] = 'brand new'
+        row['versioninfo/cuda'] = 'brand new'
+        row['versioninfo/os'] = 'brand new'
+        row['versioninfo/gcc_python'] = 'brand new'              
+        row['index'] = i
+        row.append()
+        theMetaTable.flush()
+        for j in range(3):
+            drow['metaIndexFK'] = i
+            drow['block_x'] = 1000+j+i
+            drow['block_y'] = 1000+j+i
+            drow['blocks'] = 1000+j+i
+            drow['thread_x'] = 1000+j+i
+            drow['thread_y'] = 1000+j+i
+            drow['threads'] = 1000+j+i
+            drow['time'] = 2.1+float(j+i)/3
+            drow.append()
+            theDataTable.flush()        
+    
 
 if __name__ == '__main__':
 
+    if 1:
+        build_table('fractalData.h5', populate=True)
+        
     if 0:
-        print extractMetaData()
-
-    if 1:
-        newFile = tab.openFile('fractalData.h5', mode='w', title='Fractal timing data')
-        grp = newFile.create_group("/", 'TimingData', 'Timing data for parallel execution')
-        table = newFile.create_table('/TimingData', 'meta', MetaData, 'Fractal timing meta data')
-        table = newFile.create_table('/TimingData', 'data', ExecutionData, 'Fractal timing data')        
-
-    if 1:
-        _newFile = tab.openFile('fractalData.h5', mode='a', title='New Fractal timing data')        
-        theMetaTable = _newFile.root.TimingData.meta
-        theDataTable = _newFile.root.TimingData.data   
-        row = theMetaTable.row
-        drow = theDataTable.row
-        for i in range(2):
-            row['dimensions_x'] = 20+i
-            row['dimensions_y'] = 30+i
-            row['iterations'] = 100+i
-            row['mode'] = 2+i
-            row['pos_x']= 2.1
-            row['pos_y']= 1.7
-            row['zoom']=900.
-            row['versioninfo/code_git'] = 'brand new'
-            row['versioninfo/nvidia'] = 'brand new'
-            row['versioninfo/cuda'] = 'brand new'
-            row['versioninfo/os'] = 'brand new'
-            row['versioninfo/gcc_python'] = 'brand new'              
-            row['index'] = i
-            row.append()
-            for j in range(3):
-                drow['metaIndexFK'] = i
-                drow['block_x'] = 1000+j+i
-                drow['block_y'] = 1000+j+i
-                drow['blocks'] = 1000+j+i
-                drow['thread_x'] = 1000+j+i
-                drow['thread_y'] = 1000+j+i
-                drow['threads'] = 1000+j+i
-                drow['time'] = 2.1+float(j+i)/3
-                drow.append()
-
-
-        theMetaTable.flush()
-        theDataTable.flush()        
-        
-        
-    if 1:
-        
+        init()
         res= alreadyRan( (2.1,1.7), (20, 30), 900., 2)
         if res: print extractCols(res)
 
         print  extractCols(0)
         print  extractCols(1)
         print extractMetaData()
+
+    if 1:
+        init()
+        print _get_new_meta_index()
