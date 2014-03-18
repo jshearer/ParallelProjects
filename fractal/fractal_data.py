@@ -25,7 +25,7 @@ class OverlapExecution(tab.IsDescription):
     overlap           = tab.Int64Col()
     time              = tab.Float64Col()
 
-mode_identifier = {0:'write',1:'read+write',2:'no_rw', 3:'atomicAdd+write',4:'Overlap'}[mode]
+mode_identifier = {0:'write',1:'read+write',2:'no_rw', 3:'atomicAdd+write',4:'Overlap'}
     
 class MetaData(tab.IsDescription):
     pos_x             = tab.Float64Col()
