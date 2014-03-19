@@ -49,6 +49,8 @@ if __name__ == '__main__':
 
     from argparse import ArgumentParser
 
+    # example: python -O comparison.py --dimensions 2048 1024  --zoom 1800.  --position -1.5  0.0  --iterations 100  generate --save  --cuda
+
     parser = ArgumentParser(description="Run fractal simulation, for comparison or timing purposes.")
     subparsers = parser.add_subparsers(title="Available actions")
 
