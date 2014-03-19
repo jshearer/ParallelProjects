@@ -19,11 +19,6 @@ class ExecutionData(tab.IsDescription):
     time              = tab.Float64Col()
 
 
-# TODO: add these!!!
-# git commit/hash
-# version info
-# frozen library data
-# os?
 class VersionInfo(tab.IsDescription):
     os                 = tab.StringCol(64)
     gcc_python         = tab.StringCol(64)
@@ -41,7 +36,7 @@ class MetaData(tab.IsDescription):
     zoom              = tab.Float32Col()
     dimensions_x      = tab.Int32Col()
     dimensions_y      = tab.Int32Col()
-    mode              = tab.UInt8Col()  # should be a string for easier comprehension. 
+    mode              = tab.UInt8Col()  # TODO: should be a string for easier comprehension. 
     iterations        = tab.Int32Col()
 
     versioninfo = VersionInfo()
@@ -170,6 +165,9 @@ def extractCols(nExec):
     if len(rowL)==0:
         raise ValueError('no such metadata index: %d'%nExec)
     
+    if len(rowL)>1:
+        print '!!!!!Warning!!!!!\n!!!!!more than one row of metadata with index %d'%nExec
+
     # grab first row data
     row=rowL[0]
 
