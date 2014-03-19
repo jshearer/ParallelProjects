@@ -3,6 +3,8 @@ import numpy as np
 
 NoSuchNodeError = tab.exceptions.NoSuchNodeError
 
+_VERBOSE = False
+
 _data_file = None  # module private
 
 class ExecutionData(tab.IsDescription):
@@ -97,6 +99,7 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
     if not index:
         # need a new entry
         index = _get_new_meta_index()
+        meta.row['index'] = index
         meta.row['pos_x'] = position[0]
         meta.row['pos_y'] = position[1]
         meta.row['dimensions_x'] = dimensions[0]
@@ -112,7 +115,6 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
             # TODO: check to see if we have done this combo already for the given metadata      
             try:
                 name=str(block)+", "+str(thread)
-                print name
                 result,time,block_dim,thread_dim = callCUDA(position,zoom,dimensions,name,
                                                             block=block,thread=thread,save=False,mode=mode)
             except ValueError:
@@ -121,7 +123,7 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
             print "GOOD \t"+str(block)+", "+str(thread)+": "+str(time)
             
             data.row['time'] = time
-            data.row['index'] = len(data)
+            data.row['metaIndexFK'] = index
             data.row['block_x'] = block_dim[0]
             data.row['block_y'] = block_dim[1]
             data.row['blocks'] = block
@@ -147,7 +149,7 @@ def alreadyRan(position,dimensions,zoom,mode):
     tupL = (dimensions[0], dimensions[1], mode, position[0], position[1], zoom)
     # NOTE!!!!: the condx string very sensitive. when i replaced a '&' with 'and', all rows were taken!!!
     condS = "(dimensions_x==%d) & (dimensions_y==%d) & (mode == %d) & (pos_x == %f) & (pos_y == %f) & (zoom == %f)"%tupL
-    print condS
+    if _VERBOSE: print condS
     rowL = [row for row in mtable.where(condS)]
     if len(rowL) == 0:
         return None
@@ -166,7 +168,7 @@ def extractCols(nExec):
     
     rowL = [row for row in  meta.where('index == %d'%nExec)]
     if len(rowL)==0:
-        raise ValueError('no such data items: %d'%nExec)
+        raise ValueError('no such metadata index: %d'%nExec)
     
     # grab first row data
     row=rowL[0]
@@ -176,11 +178,15 @@ def extractCols(nExec):
     threads = []
     overlap = []
     
+    # TODO: what if we find nothing?
     for execution in data.where('metaIndexFK == %d'%nExec):
         blocks.append(execution['blocks'])
         threads.append(execution['threads'])
         times.append(execution['time'])
         overlap.append(execution['overlap'])
+
+    if len(blocks)==0:
+        raise ValueError("No data associated with index = %d"%nExec)
 
     # TODO: should accept, and return dicts!
     return (blocks,times,threads,row['zoom'],row['mode'],

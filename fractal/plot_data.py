@@ -133,7 +133,7 @@ def makePlot(data,directory,xaxis='cores',xlog=True,ylog=False,ovlog=False,show=
 
 if __name__ == '__main__':
     from optparse import OptionParser
-    from fractal_data import NoSuchNodeError, extractMetaData, extractCols
+    from fractal_data import NoSuchNodeError, extractMetaData, extractCols, init
     
     parser = OptionParser(version="1.0", usage="python [-O] plot_data.py [--save | --show] [other OPTIONS]  Make plots from stored data.")
     parser.add_option("--xaxis", action="store", dest="xaxis", default="cores", help="Choose X axis: cores (default), tpc (threads_per_core), threads (total_threads), ppt (px_per_thread)")
@@ -150,6 +150,7 @@ if __name__ == '__main__':
     if not (options.show or options.save):
         parser.error("You must choose --save or --show, otherwise whadya-want-from-me???")
 
+    init()
     if not options.nexec:
         dataD = extractMetaData()
         dataL = dataD.keys()
@@ -160,6 +161,7 @@ if __name__ == '__main__':
         if len(chc)==0:
             print 'exiting ... '
             exit(0)
+        chc = int(chc)
         print '\nYou chose %s: %s'%(chc, dataD[chc])
         options.nexec = chc
 
