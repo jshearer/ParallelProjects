@@ -45,6 +45,41 @@ def runGeneration(arguments):
 
     print "("+("CUDA" if arguments.procCuda else "CPU")+") run took "+str(time)+"s."        
 
+def graph(arguments):
+    from fractal_data import NoSuchNodeError, extractMetaData, extractCols
+    
+    if not (arguments.show or arguments.save):
+        parser.error("You must choose --save or --show, otherwise whadya-want-from-me???")
+
+    if not arguments.nexec:
+        dataD = extractMetaData()
+        dataL = dataD.keys()
+        dataL.sort()
+        for dataA in dataL:
+            print '%s: %s'%(dataA, dataD[dataA])
+        chc = str( raw_input('\nEnter id (RET to exit): ') )
+        if len(chc)==0:
+            print 'exiting ... '
+            exit(0)
+        print '\nYou chose %s: %s'%(chc, dataD[chc])
+        arguments.nexec = chc
+
+    xaxisD = {'cores': 'cores', 'tpc': 'threads_per_core', 'threads': 'total_threads', 'ppt': 'px_per_thread'}
+    if arguments.xaxis not in xaxisD.keys():
+        parser.error("--axis=XXX, XXX must be one of cores, tpc, threads, ppt")
+    
+    print 'You selected nExec = %s'%arguments.nexec
+    try:
+        data = extractCols(arguments.nexec)
+    except NoSuchNodeError, e:
+        print e
+        exit(0)
+        
+    plot_data.makePlot(data,"results/",xlog=arguments.xlog, ylog=arguments.ylog, ovlog=arguments.ovlog,
+             show=arguments.show, save=arguments.save, xaxis=xaxisD[arguments.xaxis])
+    
+
+
 if __name__ == '__main__':
 
     from argparse import ArgumentParser
@@ -62,10 +97,12 @@ if __name__ == '__main__':
     timing_parser = subparsers.add_parser("timing",    help="Do timing run using cudaCollect.")
     comp_parser   = subparsers.add_parser("comparison",help="Compare times between CUDA and multithreaded CPU runs.")
     gen_parser    = subparsers.add_parser("generate",  help="Do one generation, and either display or save the generated fractal.")
+    graph_parser  = subparsers.add_parser("graph",     help="Create graph, then display or save it to disk.")
     
     timing_parser.set_defaults(func=runTiming)
     comp_parser.set_defaults(func=runComparison) #So that I can easily call their respective functions later
     gen_parser.set_defaults(func=runGeneration)
+    graph_parser.set_defaults(func=graph)
 
     timing_parser.add_argument("--blocks","-b", action="store", dest="blocks", default=range(1,2048), help="List of block counts to use, seperated by spaces.",  nargs="+", type=int)
     timing_parser.add_argument("--threads","-t",action="store", dest="threads",default=range(1,1024), help="List of thread counts to use, seperated by spaces.", nargs="+", type=int)
@@ -85,6 +122,16 @@ if __name__ == '__main__':
     gen_parser.add_argument("--mode","-m",     action="store",      dest="mode",     default=0,          help="Mode ID to use for the run.", type=int)
     gen_parser.add_argument("--name","-n",     action="store",      dest="name",     default="untitled", help="The name of the comparison for use in saving to flies.", type=str)
     gen_parser.add_argument("--save","-s",     action="store_true", dest="save",     default=False,      help="If set, will save to file specified by --name")
+
+    graph_parser.add_argument("--xaxis",  action="store",       dest="xaxis", default="cores", help="Choose X axis: cores (default), tpc (threads_per_core), threads (total_threads), ppt (px_per_thread)")
+    graph_parser.add_argument("--ylog",   action="store_true",  dest="ylog",  default=True,    help="use Log10 y (default)")
+    graph_parser.add_argument("--noylog", action="store_false", dest="ylog",                   help="do not use log10 y")
+    graph_parser.add_argument("--xlog",   action="store_true",  dest="xlog",  default=True,    help="use Log10 x (default)")
+    graph_parser.add_argument("--noxlog", action="store_false", dest="xlog",                   help="do not use log10 x")
+    graph_parser.add_argument("--ovlog",  action="store_true",  dest="ovlog", default=False,   help="use Log10 overlap")
+    graph_parser.add_argument("--show",   action="store_true",  dest="show",  default=False,   help="Display plot if DISPLAY is set")
+    graph_parser.add_argument("--save",   action="store_true",  dest="save",  default=False,   help="Store plot as PNG")
+    graph_parser.add_argument("--nexec",  action="store",       dest="nexec", default=None,    help="Data set identifier (nExec); if none, you will be prompted with a list of existing data")
 
     args = parser.parse_args()
 
