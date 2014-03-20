@@ -120,7 +120,6 @@ def makePlot(data,directory,xaxis='cores',xlog=True,ylog=False,ovlog=False,show=
     plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
 
     if save:
-        print "Saving file now."
         fn = directory+"mode_"+str(mode)+"-id"+str(index)+".png"
         with open(fn,'w') as f:
             print 'Saving to ', fn
@@ -132,11 +131,11 @@ def makePlot(data,directory,xaxis='cores',xlog=True,ylog=False,ovlog=False,show=
     plt.clf()
 
 def _graph(arguments):
-    
+
     if not (arguments.show or arguments.save):
         parser.error("You must choose --save or --show, otherwise whadya-want-from-me???")
 
-    if not arguments.nexec:
+    if not arguments.index:
         dataD = extractMetaData()
         dataL = dataD.keys()
         dataL.sort()
@@ -146,16 +145,17 @@ def _graph(arguments):
         if len(chc)==0:
             print 'exiting ... '
             exit(0)
-        print '\nYou chose %s: %s'%(chc, dataD[chc])
-        arguments.nexec = chc
+        chc = int(chc)
+        print '\nYou chose %d: %s'%(chc, dataD[chc])
+        arguments.index = chc
 
     xaxisD = {'cores': 'cores', 'tpc': 'threads_per_core', 'threads': 'total_threads', 'ppt': 'px_per_thread'}
     if arguments.xaxis not in xaxisD.keys():
         parser.error("--axis=XXX, XXX must be one of cores, tpc, threads, ppt")
     
-    print 'You selected nExec = %s'%arguments.nexec
+    print 'You selected index = %s'%arguments.index
     try:
-        data = extractCols(arguments.nexec)
+        data = extractCols(arguments.index)
     except NoSuchNodeError, e:
         print e
         exit(0)
@@ -178,12 +178,12 @@ if __name__ == '__main__':
     parser.add_argument("--xlog",   action="store_true",  dest="xlog",  default=True,    help="use Log10 x (default)")
     parser.add_argument("--noxlog", action="store_false", dest="xlog",                   help="do not use log10 x")
     parser.add_argument("--ovlog",  action="store_true",  dest="ovlog", default=False,   help="use Log10 overlap")
-    parser.add_argument("--show",   action="store_true",  dest="show",  default=False,   help="Display plot if DISPLAY is set")
-
+    
     parser.add_argument("--datasrc",action="store",       dest="h5file",default="fractalData.h5",   help="hdf5 data file")
         
+    parser.add_argument("--show",   action="store_true",  dest="show",  default=False,   help="Display plot if DISPLAY is set")
     parser.add_argument("--save",   action="store_true",  dest="save",  default=False,   help="Store plot as PNG")
-    parser.add_argument("--nexec",  action="store",       dest="nexec", default=None,    help="Data set identifier (nExec); if none, you will be prompted with a list of existing data")
+    parser.add_argument("--index",  action="store",       dest="index", default=None,    help="Data set identifier (index); if none, you will be prompted with a list of existing data")
 
     args = parser.parse_args()
 
