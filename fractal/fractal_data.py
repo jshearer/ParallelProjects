@@ -91,6 +91,7 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
     meta = _data_file.root.TimingData.meta
 
     index = alreadyRan(position, dimensions, zoom, mode)
+    # TODO: if index, check versions, and WARN if mismatch
     if not index:
         # need a new entry
         index = _get_new_meta_index()
@@ -118,7 +119,6 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
             print "GOOD \t"+str(block)+", "+str(thread)+": "+str(time)
             
             data.row['time'] = time
-            data.row['metaIndexFK'] = index
             data.row['block_x'] = block_dim[0]
             data.row['block_y'] = block_dim[1]
             data.row['blocks'] = block
@@ -212,11 +212,11 @@ def init(filename='fractalData.h5'):
         grp = _data_file.createGroup("/", 'TimingData', 'Timing data for parallel execution')
 
     if not ("/TimingData/data" in _data_file.root):
-        print 'Creating data folder'        
+        print 'Creating data table'        
         _data_file.createTable('/TimingData', 'data', ExecutionData, 'Fractal timing data')
         
     if not ("/TimingData/meta" in _data_file.root):
-        print 'Creating meta folder'
+        print 'Creating meta table'
         _data_file.createTable('/TimingData', 'meta', MetaData, 'Fractal timing meta data')
 
 def build_table(tableN, populate=True):
