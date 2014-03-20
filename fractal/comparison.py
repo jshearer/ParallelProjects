@@ -45,39 +45,6 @@ def runGeneration(arguments):
 
     print "("+("CUDA" if arguments.procCuda else "CPU")+") run took "+str(time)+"s."        
 
-def graph(arguments):
-    from fractal_data import NoSuchNodeError, extractMetaData, extractCols
-    
-    if not (arguments.show or arguments.save):
-        parser.error("You must choose --save or --show, otherwise whadya-want-from-me???")
-
-    if not arguments.nexec:
-        dataD = extractMetaData()
-        dataL = dataD.keys()
-        dataL.sort()
-        for dataA in dataL:
-            print '%s: %s'%(dataA, dataD[dataA])
-        chc = str( raw_input('\nEnter id (RET to exit): ') )
-        if len(chc)==0:
-            print 'exiting ... '
-            exit(0)
-        print '\nYou chose %s: %s'%(chc, dataD[chc])
-        arguments.nexec = chc
-
-    xaxisD = {'cores': 'cores', 'tpc': 'threads_per_core', 'threads': 'total_threads', 'ppt': 'px_per_thread'}
-    if arguments.xaxis not in xaxisD.keys():
-        parser.error("--axis=XXX, XXX must be one of cores, tpc, threads, ppt")
-    
-    print 'You selected nExec = %s'%arguments.nexec
-    try:
-        data = extractCols(arguments.nexec)
-    except NoSuchNodeError, e:
-        print e
-        exit(0)
-        
-    plot_data.makePlot(data,"results/",xlog=arguments.xlog, ylog=arguments.ylog, ovlog=arguments.ovlog,
-             show=arguments.show, save=arguments.save, xaxis=xaxisD[arguments.xaxis])
-    
 
 
 if __name__ == '__main__':

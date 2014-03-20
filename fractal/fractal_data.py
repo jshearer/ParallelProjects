@@ -43,8 +43,6 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
     from call_utils import callCUDA
     global _data_file
 
-    _init()
-
     #Only compile the function when we need to
     overlap = (mode==4)
 
@@ -111,7 +109,6 @@ def calculateOverlap(result):
 
 def alreadyRan(position,dimensions,zoom,mode):
     global _data_file
-    _init()
 
     # TODO: replace this with a tables search
     for node in _data_file.walkNodes('/execSets'):
@@ -133,7 +130,6 @@ def alreadyRan(position,dimensions,zoom,mode):
 
 def extractCols(nExec):
     global _data_file
-    _init()
 
     meta = _data_file.getNode("/execSets/"+str(nExec)+"/meta")
 
@@ -160,7 +156,6 @@ def extractCols(nExec):
 
 def extractMetaData():
     global _data_file    
-    _init()
 
     nameL = [ e._v_name for e in _data_file.root.execSets ]
 
@@ -173,18 +168,24 @@ def extractMetaData():
     
 def getGroup():
     global _data_file
-    _init()
     return _data_file.root.execSets
 
-def _init():
+def init(filename='fractalData.h5'):
     global _data_file
 
     if _data_file == None:
-        filename = "fractalData.h5"
         _data_file = tab.openFile(filename,mode='a',title="Fractal timing data")
         if not ("/execSets" in _data_file):
             _data_file.createGroup("/","execSets","Sets of execution with varying position,zoom,dimensions,blockData, or threadData")
 
 if __name__ == '__main__':
-    
+    from argparse import ArgumentParser
+
+    from fractal_data import NoSuchNodeError, extractMetaData, extractCols, init
+
+    parser = ArgumentParser(description="Plot stored results for fractal simulations")
+    parser.add_argument("--datasrc",action="store", dest="h5file",default="fractalData.h5",   help="hdf5 data file")
+    args = parser.parse_args()
+
+    init(filename=args.h5file)
     print extractMetaData()

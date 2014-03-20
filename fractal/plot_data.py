@@ -130,4 +130,63 @@ def makePlot(data,directory,xaxis='cores',xlog=True,ylog=False,ovlog=False,show=
     if show: plt.show()  # do nothing if Agg
 
     plt.clf()
+
+def _graph(arguments):
+    
+    if not (arguments.show or arguments.save):
+        parser.error("You must choose --save or --show, otherwise whadya-want-from-me???")
+
+    if not arguments.nexec:
+        dataD = extractMetaData()
+        dataL = dataD.keys()
+        dataL.sort()
+        for dataA in dataL:
+            print '%s: %s'%(dataA, dataD[dataA])
+        chc = str( raw_input('\nEnter id (RET to exit): ') )
+        if len(chc)==0:
+            print 'exiting ... '
+            exit(0)
+        print '\nYou chose %s: %s'%(chc, dataD[chc])
+        arguments.nexec = chc
+
+    xaxisD = {'cores': 'cores', 'tpc': 'threads_per_core', 'threads': 'total_threads', 'ppt': 'px_per_thread'}
+    if arguments.xaxis not in xaxisD.keys():
+        parser.error("--axis=XXX, XXX must be one of cores, tpc, threads, ppt")
+    
+    print 'You selected nExec = %s'%arguments.nexec
+    try:
+        data = extractCols(arguments.nexec)
+    except NoSuchNodeError, e:
+        print e
+        exit(0)
+        
+    makePlot(data,"results/",xlog=arguments.xlog, ylog=arguments.ylog, ovlog=arguments.ovlog,
+             show=arguments.show, save=arguments.save, xaxis=xaxisD[arguments.xaxis])
      
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+
+    from fractal_data import NoSuchNodeError, extractMetaData, extractCols, init
+
+    # example: python -O plot_data.py  --save &/| --store [OPTIONS]
+
+    parser = ArgumentParser(description="Plot stored results for fractal simulations")
+
+    parser.add_argument("--xaxis",  action="store",       dest="xaxis", default="cores", help="Choose X axis: cores (default), tpc (threads_per_core), threads (total_threads), ppt (px_per_thread)")
+    parser.add_argument("--ylog",   action="store_true",  dest="ylog",  default=True,    help="use Log10 y (default)")
+    parser.add_argument("--noylog", action="store_false", dest="ylog",                   help="do not use log10 y")
+    parser.add_argument("--xlog",   action="store_true",  dest="xlog",  default=True,    help="use Log10 x (default)")
+    parser.add_argument("--noxlog", action="store_false", dest="xlog",                   help="do not use log10 x")
+    parser.add_argument("--ovlog",  action="store_true",  dest="ovlog", default=False,   help="use Log10 overlap")
+    parser.add_argument("--show",   action="store_true",  dest="show",  default=False,   help="Display plot if DISPLAY is set")
+
+    parser.add_argument("--datasrc",action="store",       dest="h5file",default="fractalData.h5",   help="hdf5 data file")
+        
+    parser.add_argument("--save",   action="store_true",  dest="save",  default=False,   help="Store plot as PNG")
+    parser.add_argument("--nexec",  action="store",       dest="nexec", default=None,    help="Data set identifier (nExec); if none, you will be prompted with a list of existing data")
+
+    args = parser.parse_args()
+
+    init(filename=args.h5file)
+    _graph(args)
+
