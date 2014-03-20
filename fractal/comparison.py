@@ -1,5 +1,4 @@
 import call_utils
-import fractal_data #Put these here to avoid the pesky "Compiled and got function Gen" lag from compiling the kernel
 import plot_data
 
 def runComparison(arguments):
@@ -19,11 +18,12 @@ def runComparison(arguments):
     print "CUDA ran in "+str(cudaTime)+"s"
 
 def runTiming(arguments):
+    import fractal_data #Put these here to avoid the pesky "Compiled and got function Gen" lag from compiling the kernel
     execData = {'blocks':arguments.blocks,
                 'threads':arguments.threads}
 
-    print("Doing timing run, execData: "+str(execData))
-
+    print("Doing timing run, execData: "+str(execData)[0:64])+'...'
+    fractal_data.init()
     for mode in arguments.modes:
         print "Mode "+str(mode)+":"
         index=None
@@ -74,9 +74,10 @@ if __name__ == '__main__':
     comp_parser.set_defaults(func=runComparison) #So that I can easily call their respective functions later
     gen_parser.set_defaults(func=runGeneration)
 
-    timing_parser.add_argument("--blocks","-b", action="store", dest="blocks", default=range(1,2048), help="List of block counts to use, seperated by spaces.",  nargs="+", type=int)
-    timing_parser.add_argument("--threads","-t",action="store", dest="threads",default=range(1,1024), help="List of thread counts to use, seperated by spaces.", nargs="+", type=int)
-    timing_parser.add_argument("--modes","-m",  action="store", dest="modes",  default=range(0,3),    help="List of modes to use, seperated by spaces.",         nargs="+", type=int)
+    timing_parser.add_argument("--blocks","-b", action="store",      dest="blocks", default=range(1,2048), help="List of block counts to use, seperated by spaces.",  nargs="+", type=int)
+    timing_parser.add_argument("--threads","-t",action="store",      dest="threads",default=range(1,1024), help="List of thread counts to use, seperated by spaces.", nargs="+", type=int)
+    timing_parser.add_argument("--modes","-m",  action="store",      dest="modes",  default=range(0,3),    help="List of modes to use, seperated by spaces.",         nargs="+", type=int)
+    timing_parser.add_argument("--show", "-s",  action="store_true", dest="show",   default=True,          help="Display timing plot if DISPLAY is set.")
 
     comp_parser.add_argument("--name","-n",     action="store",      dest="name",     default="untitled", help="The name of the comparison for use in saving to flies.", type=str)
     comp_parser.add_argument("--save","-s",     action="store_true", dest="save",     default=False,      help="If set, will save to file specified by --name")
