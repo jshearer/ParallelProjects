@@ -77,7 +77,7 @@ if __name__ == '__main__':
     timing_parser.add_argument("--blocks","-b", action="store",      dest="blocks", default=range(1,2048), help="List of block counts to use, seperated by spaces.",  nargs="+", type=int)
     timing_parser.add_argument("--threads","-t",action="store",      dest="threads",default=range(1,1024), help="List of thread counts to use, seperated by spaces.", nargs="+", type=int)
     timing_parser.add_argument("--modes","-m",  action="store",      dest="modes",  default=range(0,3),    help="List of modes to use, seperated by spaces.",         nargs="+", type=int)
-    timing_parser.add_argument("--show", "-s",  action="store_true", dest="show",   default=True,          help="Display timing plot if DISPLAY is set.")
+    timing_parser.add_argument("--show", "-s",  action="store_true", dest="show",   default=False,         help="Display timing plot if DISPLAY is set.")
 
     comp_parser.add_argument("--name","-n",     action="store",      dest="name",     default="untitled", help="The name of the comparison for use in saving to flies.", type=str)
     comp_parser.add_argument("--save","-s",     action="store_true", dest="save",     default=False,      help="If set, will save to file specified by --name")

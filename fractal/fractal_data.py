@@ -18,11 +18,17 @@ class ExecutionData(tab.IsDescription):
     overlap           = tab.Int64Col()
     time              = tab.Float64Col()
 
+# godzilla@K20cGPU:~$ cat /proc/driver/nvidia/gpus/0/information 
+# Model: 		 Tesla K20c
+# godzilla@TMA-1:~/Desktop/Science/ParallelProjects/fractal$ cat /proc/driver/nvidia/gpus/0/information 
+# Model: 		 GeForce GT 555M
 class VersionInfo(tab.IsDescription):
     os                 = tab.StringCol(64)
-    gcc_python         = tab.StringCol(64)
-    nvidia             = tab.StringCol(64)
-    cuda               = tab.StringCol(64)
+    gcc                = tab.StringCol(64)
+    python             = tab.StringCol(64)
+    nvidia_driver      = tab.StringCol(64)
+    cuda_device        = tab.StringCol(32)
+    cuda_api           = tab.StringCol(64)
     pycuda             = tab.StringCol(64)
     pytables           = tab.StringCol(64)
     code_git           = tab.StringCol(64)
@@ -36,7 +42,6 @@ class MetaData(tab.IsDescription):
     dimensions_y      = tab.Int32Col()
     mode              = tab.UInt8Col()  # TODO: should be a string for easier comprehension. 
     iterations        = tab.Int32Col()
-
     versioninfo = VersionInfo()
 
     # TODO: what kind of attributes can we add here. when i tried to
@@ -44,6 +49,9 @@ class MetaData(tab.IsDescription):
     
 mode_identifier = {0:'write',1:'read+write',2:'no_rw', 3:'atomicAdd+write',4:'Overlap'}
 
+# TODO: how to make generic versions of cudaCollect, alreadyRan,
+# extractCols, extractMetaData, etc. i.e., not dependent on any
+# particular problem, like fractal, etc.
 class PairedDataStorage(object):
     @classmethod
     def cudaCollect(cls, kwdD):
@@ -219,7 +227,7 @@ def init(filename='fractalData.h5'):
         print 'Creating meta table'
         _data_file.createTable('/TimingData', 'meta', MetaData, 'Fractal timing meta data')
 
-def build_table(tableN, populate=True):
+def _build_table(tableN, populate=True):
     global _data_file
     
     init(filename=tableN)
@@ -312,7 +320,13 @@ if __name__ == '__main__':
         _delete_row('meta',0)
 
     if 0:
-        build_table('fractalData.h5', populate=True)
+        _build_table('fractalData.h5', populate=True)
+
+    if 0:
+        print _get_new_meta_index()
+
+    if 0:
+        _test_where(2)
 
     if 1:
         md = extractMetaData()
@@ -331,8 +345,3 @@ if __name__ == '__main__':
             else:
                 print 'no result for ', dim, mode
 
-    if 0:
-        print _get_new_meta_index()
-
-    if 0:
-        _test_where(2)
