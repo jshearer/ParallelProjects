@@ -18,17 +18,49 @@ class ExecutionData(tab.IsDescription):
     overlap           = tab.Int64Col()
     time              = tab.Float64Col()
 
-# godzilla@K20cGPU:~$ cat /proc/driver/nvidia/gpus/0/information 
-# Model: 		 Tesla K20c
-# godzilla@TMA-1:~/Desktop/Science/ParallelProjects/fractal$ cat /proc/driver/nvidia/gpus/0/information 
-# Model: 		 GeForce GT 555M
+"""
+linux: godzilla@speggy:~/Desktop/Science/ParallelProjects/fractal$ uname -a
+Linux K20cGPU 3.11.0-18-generic #32-Ubuntu SMP Tue Feb 18 21:11:14 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
+
+nvidia: godzilla@K20cGPU:~$ cat /proc/driver/nvidia/version 
+NVRM version: NVIDIA UNIX x86_64 Kernel Module  319.32  Wed Jun 19 15:51:20 PDT 2013
+GCC version:  gcc version 4.8.1 (Ubuntu/Linaro 4.8.1-10ubuntu9) 
+
+cuda_device: godzilla@K20cGPU:~$ cat /proc/driver/nvidia/gpus/0/information 
+Model: 		 Tesla K20c
+IRQ:   		 40
+
+godzilla@K20cGPU:~$ nvcc --version
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2013 NVIDIA Corporation
+Built on Wed_Jul_17_18:36:13_PDT_2013
+Cuda compilation tools, release 5.5, V5.5.0
+
+gcc: godzilla@K20cGPU:~$ gcc --version
+gcc (Ubuntu/Linaro 4.8.1-10ubuntu9) 4.8.1
+
+python: In [3]: print sys.version 2.7.6 (default, Feb 26 2014, 00:34:35)   [GCC 4.8.2]
+
+numpy: In [11]: print numpy.version.version   1.8.1rc1
+
+pycuda: In [3]: pycuda.VERSION
+Out[3]: (2013, 1, 1)
+
+pytables: In [15]: tables.getPyTablesVersion()  Out[15]: '3.1.0'
+hdf: In [8]: tables.getHDF5Version()
+Out[8]: '1.8.10-patch1'
+
+
+"""
+    
 class VersionInfo(tab.IsDescription):
     os                 = tab.StringCol(64)
+    nvidia             = tab.StringCol(64)
+    cuda_device        = tab.StringCol(64)
+    cuda_toolkit       = tab.StringCol(64)
     gcc                = tab.StringCol(64)
     python             = tab.StringCol(64)
-    nvidia_driver      = tab.StringCol(64)
-    cuda_device        = tab.StringCol(32)
-    cuda_api           = tab.StringCol(64)
+    numpy              = tab.StringCol(64)
     pycuda             = tab.StringCol(64)
     pytables           = tab.StringCol(64)
     code_git           = tab.StringCol(64)
