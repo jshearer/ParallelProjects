@@ -1,10 +1,6 @@
 import tables as tab
 import numpy as np
-from num py import version as numpy_version
-from pycuda import VERSION as CUDAVERSION
-from sys import version as PYVERSION
-from tables import getPyTablesVersion, getHDF5Version
-
+from version import get_version_info
 
 NoSuchNodeError = tab.exceptions.NoSuchNodeError
 
@@ -23,41 +19,6 @@ class ExecutionData(tab.IsDescription):
     overlap           = tab.Int64Col()
     time              = tab.Float64Col()
 
-"""
-linux: godzilla@speggy:~/Desktop/Science/ParallelProjects/fractal$ uname -a
-Linux K20cGPU 3.11.0-18-generic #32-Ubuntu SMP Tue Feb 18 21:11:14 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
-
-nvidia: godzilla@K20cGPU:~$ cat /proc/driver/nvidia/version 
-NVRM version: NVIDIA UNIX x86_64 Kernel Module  319.32  Wed Jun 19 15:51:20 PDT 2013
-GCC version:  gcc version 4.8.1 (Ubuntu/Linaro 4.8.1-10ubuntu9) 
-
-cuda_device: godzilla@K20cGPU:~$ cat /proc/driver/nvidia/gpus/0/information 
-Model: 		 Tesla K20c
-IRQ:   		 40
-
-godzilla@K20cGPU:~$ nvcc --version
-nvcc: NVIDIA (R) Cuda compiler driver
-Copyright (c) 2005-2013 NVIDIA Corporation
-Built on Wed_Jul_17_18:36:13_PDT_2013
-Cuda compilation tools, release 5.5, V5.5.0
-
-gcc: godzilla@K20cGPU:~$ gcc --version
-gcc (Ubuntu/Linaro 4.8.1-10ubuntu9) 4.8.1
-
-python: In [3]: print sys.version 2.7.6 (default, Feb 26 2014, 00:34:35)   [GCC 4.8.2]
-
-numpy: In [11]: print numpy.version.version   1.8.1rc1
-
-pycuda: In [3]: pycuda.VERSION
-Out[3]: (2013, 1, 1)
-
-pytables: In [15]: tables.getPyTablesVersion()  Out[15]: '3.1.0'
-hdf: In [8]: tables.getHDF5Version()
-Out[8]: '1.8.10-patch1'
-
-
-"""
-    
 class VersionInfo(tab.IsDescription):
     os                 = tab.StringCol(64)
     nvidia             = tab.StringCol(64)
@@ -110,13 +71,6 @@ class PairedDataStorage(object):
     def extractMetaData(cls):
         pass
 
-def _set_version_info(row):
-    """don't forget to flush afterwards"""
-    def doIT(cmd):
-        pass
-    row['os'] = osname
-    row['nvidia'] = nvname
-
 def _get_new_meta_index():
     meta = _data_file.root.TimingData.meta
     if meta.nrows == 0:
@@ -154,6 +108,12 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
         meta.row['zoom'] = zoom
         meta.row['mode'] = mode
         meta.row['iterations'] = iterations
+
+        verD = get_version_info()
+        for sym in ('os', 'nvidia', 'cuda_device', 'cuda_toolkit', , 'gcc', 'python', 'numpy', 'pycuda', 
+                    'pytables', 'code_git'):
+            meta.row[sym] = verD[sym]
+
         meta.row.append()
         meta.flush()
 
