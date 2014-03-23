@@ -110,9 +110,9 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
         meta.row['iterations'] = iterations
 
         verD = get_version_info()
-        for sym in ('os', 'nvidia', 'cuda_device', 'cuda_toolkit', , 'gcc', 'python', 'numpy', 'pycuda', 
-                    'pytables', 'code_git'):
-            meta.row[sym] = verD[sym]
+        for sym in ('os', 'nvidia', 'cuda_device', 'cuda_toolkit', 'gcc', 
+                    'python', 'numpy', 'pycuda',   'pytables', 'code_git'):
+            meta.row['versioninfo/%s'%sym] = verD[sym]
 
         meta.row.append()
         meta.flush()
