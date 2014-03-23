@@ -1,0 +1,66 @@
+1x initial dimension and zoom
+Position: [-1.1, 0.0], Dimensions: [6240, 8192], Zoom: 2000.0, Iterations: 200
+
+	#Blocks: Max blocks. 2496
+	#Looping case:
+
+		px_per_thread: [12  1]
+
+		(CUDA) run took 0.0556126098633s.
+		#### 	
+		(CUDA) run took 0.0554801902771s.
+		####
+		(CUDA) run took 0.0556154251099s.
+
+		Average: 0.05556940841676s
+
+	#Blocks: 2*Max blocks. 4992
+	#Queueing case:
+
+		px_per_thread: [6 1]
+
+		(CUDA) run took 0.0620695343018s.
+		####
+		(CUDA) run took 0.0621044158936s.
+		####
+		(CUDA) run took 0.062061504364s.
+	
+		Average: 0.0620784848531s
+
+As a percentage of time, queueing blocks with relatively small dimensions appears to add an overhead of approximately 11.7% or 0.00651 seconds.
+
+#4x initial dimensions and zoom, 16x initial pixel count:
+Position: [-1.1, 0.0], Dimensions: [24960, 32768], Zoom: 8000.0, Iterations: 200
+
+	#Blocks: Max blocks. 2496
+	#Looping case:
+
+		px_per_thread: [195   1]
+
+		(CUDA) run took 0.939199890137s.
+		####
+		(CUDA) run took 0.937348815918s.
+		####
+		(CUDA) run took 0.939151489258s.
+
+		Average: 0.938566731771s	
+
+	#Blocks: 2*Max blocks. 4992
+	#Queueing case:
+
+		px_per_thread: [97  1]
+
+		(CUDA) run took 1.00251446533s.
+		####
+		(CUDA) run took 1.00190093994s.
+		####
+		(CUDA) run took 1.00256231689s.
+
+		Average: 1.00232590738s
+
+
+
+
+As a percentage of time, queueing blocks with relatively large dimensions (much larger and the GPU runs out of memory) appears to add an overhead of approximately 6.8% or 0.06376 seconds.
+
+All in all, looping is faster by a small but noticeable margin. 
