@@ -1,5 +1,10 @@
 import tables as tab
 import numpy as np
+from num py import version as numpy_version
+from pycuda import VERSION as CUDAVERSION
+from sys import version as PYVERSION
+from tables import getPyTablesVersion, getHDF5Version
+
 
 NoSuchNodeError = tab.exceptions.NoSuchNodeError
 
@@ -104,6 +109,13 @@ class PairedDataStorage(object):
     @classmethod
     def extractMetaData(cls):
         pass
+
+def _set_version_info(row):
+    """don't forget to flush afterwards"""
+    def doIT(cmd):
+        pass
+    row['os'] = osname
+    row['nvidia'] = nvname
 
 def _get_new_meta_index():
     meta = _data_file.root.TimingData.meta
