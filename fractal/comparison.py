@@ -1,5 +1,6 @@
 import call_utils
 import plot_data
+from utils import genParameters # for queue/loop comparison
 
 def runComparison(arguments):
     print "Comparing parameters for (" +(str(arguments.name) if arguments.save else "")+ "): ( (" +str(arguments.pos[0])+","+str(arguments.pos[1])+"), ",
@@ -19,12 +20,12 @@ def runComparison(arguments):
 
 def runTiming(arguments):
     import fractal_data #Put these here to avoid the pesky "Compiled and got function Gen" lag from compiling the kernel
-    execData = {'blocks':arguments.blocks,
-                'threads':arguments.threads}
+    execData = {'blocks':arguments.blocksL,
+                'threads':arguments.threadsL}
 
     print("Doing timing run, execData: "+str(execData)[0:64])+'...'
     fractal_data.init()
-    for mode in arguments.modes:
+    for mode in arguments.modesL:
         print "Mode "+str(mode)+":"
         index=None
         try:
@@ -51,12 +52,33 @@ def runGeneration(arguments):
 
     print "("+("CUDA" if arguments.procCuda else "CPU")+") run took "+str(time)+"s."        
 
+def runQueueLoopComparison(arguments):
+    """1. lets take pixels_per_thread for queueing case greater than 1, so
+    lets say 10, 50
+
+    2. blocks*threads = dimx*dimy/ px_per_thread, so if we take
+    threads = 512, px_per_thread = 50, and blocks = 4096, then that
+    defines dimx*dimy
+
+    dimx * dimy = 4096*512 * px_per_thread
+
+    3. pick a dimx and a dimy
+
+    4. run that dimx, dimy, px_per_thread=10, or 50, say, 4096 blocks, 512 threads.
+
+    5, then run the same but with blocks = 512
+
+    """
+    dimsq = arguments.blocks* arguments.threads * arguments.px_per_thread
+    result, time,blocks, threads = call_utils.callCUDA(arguments.pos,arguments.zoom,arguments.dim,arguments.name,iterations=arguments.iter,
+                                                       block=arguments.blocks,thread=arguments.threads,save=arguments.save, mode=arguments.mode)    
+
 
 if __name__ == '__main__':
 
     from argparse import ArgumentParser
 
-    # example: python -O comparison.py --dimensions 2048 1024  --zoom 1800.  --position -1.5  0.0  --iterations 100  generate --save  --cuda
+    # example: python -O comparison.py --dimensions 2048 1024  --zoom 1800.  --position -1.5  0.0  --iterations 100  --save  generate  --cuda
 
     parser = ArgumentParser(description="Run fractal simulation, for comparison or timing purposes.")
     subparsers = parser.add_subparsers(title="Available actions")
@@ -66,33 +88,32 @@ if __name__ == '__main__':
     parser.add_argument("--zoom","-z",        action="store",      dest="zoom", default=400,         help="Fractal dilation. Scales around positoin.", type=float)
     parser.add_argument("--iterations",'-i',  action="store",      dest="iter", default=200,         help="Maximum number of iterations for a specific pixel.", type=int)
 
+    parser.add_argument("--blocks","-b",   action="store",      dest="blocks",   default=1,          help="Number of blocks to use for the run.", type=int)
+    parser.add_argument("--threads","-t",  action="store",      dest="threads",  default=1,          help="Number of threads to use for the run.", type=int)
+    parser.add_argument("--mode","-m",     action="store",      dest="mode",     default=0,          help="Action ID to use for the run.", type=int)
+    parser.add_argument("--name","-n",     action="store",      dest="name",     default="untitled", help="The name of the comparison for use in saving to flies.", type=str)
+    parser.add_argument("--save","-s",     action="store_true", dest="save",     default=False,      help="If set, will save to file specified by --name")
+    parser.add_argument("--show",          action="store_true", dest="show",     default=False,      help="Display timing plot if DISPLAY is set.")
+
     timing_parser = subparsers.add_parser("timing",    help="Do timing run using cudaCollect.")
     comp_parser   = subparsers.add_parser("comparison",help="Compare times between CUDA and multithreaded CPU runs.")
     gen_parser    = subparsers.add_parser("generate",  help="Do one generation, and either display or save the generated fractal.")
+    queue_parser  = subparsers.add_parser("queue",  help="Compare queueing and looping.")
     
     timing_parser.set_defaults(func=runTiming)
     comp_parser.set_defaults(func=runComparison) #So that I can easily call their respective functions later
     gen_parser.set_defaults(func=runGeneration)
+    queue_parser.set_defaults(func=runQueueLoopComparison)
 
-    timing_parser.add_argument("--blocks","-b", action="store",      dest="blocks", default=range(1,2048), help="List of block counts to use, seperated by spaces.",  nargs="+", type=int)
-    timing_parser.add_argument("--threads","-t",action="store",      dest="threads",default=range(1,1024), help="List of thread counts to use, seperated by spaces.", nargs="+", type=int)
-    timing_parser.add_argument("--modes","-m",  action="store",      dest="modes",  default=range(0,3),    help="List of modes to use, seperated by spaces.",         nargs="+", type=int)
-    timing_parser.add_argument("--show", "-s",  action="store_true", dest="show",   default=False,         help="Display timing plot if DISPLAY is set.")
+    timing_parser.add_argument("--blocksL","-b", action="store",      dest="blocksL", default=range(1,2048), help="List of block counts to use, seperated by spaces.",  nargs="+", type=int)
+    timing_parser.add_argument("--threadsL","-t",action="store",      dest="threadsL",default=range(1,1024), help="List of thread counts to use, seperated by spaces.", nargs="+", type=int)
+    timing_parser.add_argument("--modesL","-m",  action="store",      dest="modesL",  default=range(0,3),    help="List of modes to use, seperated by spaces.",         nargs="+", type=int)
 
-    comp_parser.add_argument("--name","-n",     action="store",      dest="name",     default="untitled", help="The name of the comparison for use in saving to flies.", type=str)
-    comp_parser.add_argument("--save","-s",     action="store_true", dest="save",     default=False,      help="If set, will save to file specified by --name")
-    comp_parser.add_argument("--blocks","-b",   action="store",      dest="blocks",   default=1,          help="Number of blocks to use for the run.", type=int)
-    comp_parser.add_argument("--threads","-t",  action="store",      dest="threads",  default=1,          help="Number of threads to use for the run.", type=int)
-    comp_parser.add_argument("--mode","-m",     action="store",      dest="mode",     default=0,          help="Action ID to use for the run.", type=int)
+    queue_parser.add_argument("--pxperthread",   action="store",       dest="px_per_thread",   default=20,            help="Number of pixels per thread minimum", type=int)
 
     group = gen_parser.add_argument_group(title="Processor to use").add_mutually_exclusive_group(required=True)
     group.add_argument("--cuda","--gpu","-g",  action="store_true", dest="procCuda", default=False,      help="Use the GPGPU/CUDA processor to do the run.")
     group.add_argument("--cpu","-c",           action="store_true", dest="procCpu",  default=False,      help="Use the multithreaded CPU generator for the run.")
-    gen_parser.add_argument("--blocks","-b",   action="store",      dest="blocks",   default=1,          help="Number of blocks to use for the run.", type=int)
-    gen_parser.add_argument("--threads","-t",  action="store",      dest="threads",  default=1,          help="Number of threads to use for the run.", type=int)
-    gen_parser.add_argument("--mode","-m",     action="store",      dest="mode",     default=0,          help="Mode ID to use for the run.", type=int)
-    gen_parser.add_argument("--name","-n",     action="store",      dest="name",     default="untitled", help="The name of the comparison for use in saving to flies.", type=str)
-    gen_parser.add_argument("--save","-s",     action="store_true", dest="save",     default=False,      help="If set, will save to file specified by --name")
 
     args = parser.parse_args()
 
