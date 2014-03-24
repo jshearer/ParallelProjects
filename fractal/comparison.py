@@ -52,7 +52,7 @@ def runGeneration(arguments):
 
     print "("+("CUDA" if arguments.procCuda else "CPU")+") run took "+str(time)+"s."        
 
-def runQueueLoopComparison(arguments):
+def runQueueLoopComparison(args):
     """1. lets take pixels_per_thread for queueing case greater than 1, so
     lets say 10, 50
 
@@ -86,22 +86,40 @@ def runQueueLoopComparison(arguments):
     29952 29952 4992  512  351  1.17207836914
     29952 29952 1248  512 1404  1.19653564453
 
+    even with 4:1 W::H:
+    Doing (runQueueLoopComparison) run. Position: [-1.3, 0.0], Dimensions: [1024, 1024], Zoom: 900.0, Iterations: 100
+    59904 14976 4992 512 351 1.16753649902
+    59904 14976 2496 512 702 1.18160949707
+
+
     """
     from math import sqrt
-    dimsq = arguments.blocks* arguments.threads * arguments.px_per_thread
-    dimx = int( sqrt(dimsq) )
-    dimy = dimx
-    factor=2
-    print dimx
-    result, time1,blocks, threads = call_utils.callCUDA(arguments.pos,arguments.zoom, (dimx,dimy),arguments.name,iterations=arguments.iter,
-                                                        block=arguments.blocks,thread=arguments.threads,save=arguments.save, 
-                                                        mode=arguments.mode) 
-    result, time2,blocks, threads = call_utils.callCUDA(arguments.pos,arguments.zoom, (dimx,dimy),arguments.name,iterations=arguments.iter,
-                                                        block=arguments.blocks/factor,thread=arguments.threads,save=arguments.save, 
-                                                        mode=arguments.mode) 
+    dimx,dimy=args.dim
+    if dimx==0 or dimy==0:
+        dimsq = args.blocks* args.threads * args.px_per_thread
+        dimx = int( sqrt(dimsq) )
+        # try a different shape
+        if 0:
+            dimy = dimx/2
+            dimx = 2 * dimx
+    else:
+        threads = int( dimx*dimy/float( args.blocks*args.px_per_thread) )
+        if args.blocks* threads * args.px_per_thread != dimx*dimy:
+            raise ValueError('# threads not an integer')
+        print '# threads = %f  (%d, %d: %d::%d)'%(threads, dimx, dimy, args.blocks, args.px_per_thread)
+        args.threads=threads
 
-    print dimx, dimy, arguments.blocks, arguments.threads, arguments.px_per_thread, time1
-    print dimx, dimy, arguments.blocks/factor, arguments.threads, arguments.px_per_thread*factor, time2
+    factor=2
+
+    result, time1,blocks, threads = call_utils.callCUDA(args.pos,args.zoom, (dimx,dimy),args.name,iterations=args.iter,
+                                                        block=args.blocks,thread=args.threads,save=args.save, 
+                                                        mode=args.mode) 
+    result, time2,blocks, threads = call_utils.callCUDA(args.pos,arguments.zoom, (dimx,dimy),args.name,iterations=args.iter,
+                                                        block=args.blocks/factor,thread=args.threads,save=args.save, 
+                                                        mode=args.mode) 
+
+    print dimx, dimy, args.blocks, args.threads, args.px_per_thread, time1
+    print dimx, dimy, args.blocks/factor, args.threads, args.px_per_thread*factor, time2
     
     
 
