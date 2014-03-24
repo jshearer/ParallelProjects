@@ -7,7 +7,7 @@ K20C_THREADS = 1024
 def getFactors(val):
     return np.array([(i, val / i) for i in range(1, int(val+1)) if val % i == 0])
 
-def genParameters(blocks,threads,dimensions,silent=False, useOrigChk=False, respectGPUBlockConstraints=True):
+def genParameters(blocks,threads,dimensions,silent=False, useOrigChk=False, respectGPUBlockConstraints=False):
     # should check that blocks <= blocks available on GPU
     # should check that threads <= threads available on block on GPU
     if (blocks > K20C_BLOCKS) and respectGPUBlockConstraints:

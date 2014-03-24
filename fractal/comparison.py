@@ -1,6 +1,5 @@
 import call_utils
 import plot_data
-from utils import genParameters # for queue/loop comparison
 
 def runComparison(arguments):
     print "Comparing parameters for (" +(str(arguments.name) if arguments.save else "")+ "): ( (" +str(arguments.pos[0])+","+str(arguments.pos[1])+"), ",
@@ -98,6 +97,7 @@ def runQueueLoopComparison(args):
     if dimx==0 or dimy==0:
         dimsq = args.blocks* args.threads * args.px_per_thread
         dimx = int( sqrt(dimsq) )
+        dimy=dimx
         # try a different shape
         if 0:
             dimy = dimx/2
@@ -111,15 +111,15 @@ def runQueueLoopComparison(args):
 
     factor=2
 
-    result, time1,blocks, threads = call_utils.callCUDA(args.pos,args.zoom, (dimx,dimy),args.name,iterations=args.iter,
+    result, time1,blocks1, threads1 = call_utils.callCUDA(args.pos,args.zoom, (dimx,dimy),args.name,iterations=args.iter,
                                                         block=args.blocks,thread=args.threads,save=args.save, 
                                                         mode=args.mode) 
-    result, time2,blocks, threads = call_utils.callCUDA(args.pos,arguments.zoom, (dimx,dimy),args.name,iterations=args.iter,
+    result, time2,blocks2, threads2 = call_utils.callCUDA(args.pos,args.zoom, (dimx,dimy),args.name,iterations=args.iter,
                                                         block=args.blocks/factor,thread=args.threads,save=args.save, 
                                                         mode=args.mode) 
 
-    print dimx, dimy, args.blocks, args.threads, args.px_per_thread, time1
-    print dimx, dimy, args.blocks/factor, args.threads, args.px_per_thread*factor, time2
+    print dimx, dimy, args.blocks, blocks1, args.threads, threads1, args.px_per_thread, time1
+    print dimx, dimy, args.blocks/factor, blocks2, args.threads, threads2, args.px_per_thread*factor, time2
     
     
 
