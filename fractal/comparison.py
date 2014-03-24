@@ -68,11 +68,42 @@ def runQueueLoopComparison(arguments):
 
     5, then run the same but with blocks = 512
 
-    """
-    dimsq = arguments.blocks* arguments.threads * arguments.px_per_thread
-    result, time,blocks, threads = call_utils.callCUDA(arguments.pos,arguments.zoom,arguments.dim,arguments.name,iterations=arguments.iter,
-                                                       block=arguments.blocks,thread=arguments.threads,save=arguments.save, mode=arguments.mode)    
+    zoom=900
+    iterations = 100
+                            px
+                           per
+     dimx  dimy blks thds  thd      time
+    -----------------------------------------
+    19968 19968 4992 1024   78  0.408787567139
+    19968 19968 2496 1024  156  0.447927703857
 
+    19968 19968 4992 1024   78  0.4087394104
+    19968 19968 1248 1024  312  0.464446563721
+ 
+    29952 29952 4992  512  351  1.17091418457
+    29952 29952 2496  512  702  1.18278723145
+
+    29952 29952 4992  512  351  1.17207836914
+    29952 29952 1248  512 1404  1.19653564453
+
+    """
+    from math import sqrt
+    dimsq = arguments.blocks* arguments.threads * arguments.px_per_thread
+    dimx = int( sqrt(dimsq) )
+    dimy = dimx
+    factor=2
+    print dimx
+    result, time1,blocks, threads = call_utils.callCUDA(arguments.pos,arguments.zoom, (dimx,dimy),arguments.name,iterations=arguments.iter,
+                                                        block=arguments.blocks,thread=arguments.threads,save=arguments.save, 
+                                                        mode=arguments.mode) 
+    result, time2,blocks, threads = call_utils.callCUDA(arguments.pos,arguments.zoom, (dimx,dimy),arguments.name,iterations=arguments.iter,
+                                                        block=arguments.blocks/factor,thread=arguments.threads,save=arguments.save, 
+                                                        mode=arguments.mode) 
+
+    print dimx, dimy, arguments.blocks, arguments.threads, arguments.px_per_thread, time1
+    print dimx, dimy, arguments.blocks/factor, arguments.threads, arguments.px_per_thread*factor, time2
+    
+    
 
 if __name__ == '__main__':
 
@@ -109,7 +140,7 @@ if __name__ == '__main__':
     timing_parser.add_argument("--threadsL","-t",action="store",      dest="threadsL",default=range(1,1024), help="List of thread counts to use, seperated by spaces.", nargs="+", type=int)
     timing_parser.add_argument("--modesL","-m",  action="store",      dest="modesL",  default=range(0,3),    help="List of modes to use, seperated by spaces.",         nargs="+", type=int)
 
-    queue_parser.add_argument("--pxperthread",   action="store",       dest="px_per_thread",   default=20,            help="Number of pixels per thread minimum", type=int)
+    queue_parser.add_argument("--pxperthread",   action="store",       dest="px_per_thread",   default=20,   help="Number of pixels per thread minimum", type=int)
 
     group = gen_parser.add_argument_group(title="Processor to use").add_mutually_exclusive_group(required=True)
     group.add_argument("--cuda","--gpu","-g",  action="store_true", dest="procCuda", default=False,      help="Use the GPGPU/CUDA processor to do the run.")
