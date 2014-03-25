@@ -1,5 +1,9 @@
+from math import sqrt
+
 import call_utils
 import plot_data
+import fractal_data 
+from utils import allocate_cores
 
 def runComparison(arguments):
     print "Comparing parameters for (" +(str(arguments.name) if arguments.save else "")+ "): ( (" +str(arguments.pos[0])+","+str(arguments.pos[1])+"), ",
@@ -18,7 +22,6 @@ def runComparison(arguments):
     print "CUDA ran in "+str(cudaTime)+"s"
 
 def runTiming(arguments):
-    import fractal_data #Put these here to avoid the pesky "Compiled and got function Gen" lag from compiling the kernel
     execData = {'blocks':arguments.blocksL,
                 'threads':arguments.threadsL}
 
@@ -92,35 +95,24 @@ def runQueueLoopComparison(args):
 
 
     """
-    from math import sqrt
     dimx,dimy=args.dim
-    if dimx==0 or dimy==0:
-        dimsq = args.blocks* args.threads * args.px_per_thread
-        dimx = int( sqrt(dimsq) )
-        dimy=dimx
-        # try a different shape
-        if 0:
-            dimy = dimx/2
-            dimx = 2 * dimx
-    else:
-        threads = int( dimx*dimy/float( args.blocks*args.px_per_thread) )
-        if args.blocks* threads * args.px_per_thread != dimx*dimy:
-            raise ValueError('# threads not an integer')
-        print '# threads = %f  (%d, %d: %d::%d)'%(threads, dimx, dimy, args.blocks, args.px_per_thread)
-        args.threads=threads
-
-    factor=2
-
-    result, time1,blocks1, threads1 = call_utils.callCUDA(args.pos,args.zoom, (dimx,dimy),args.name,iterations=args.iter,
-                                                        block=args.blocks,thread=args.threads,save=args.save, 
-                                                        mode=args.mode) 
-    result, time2,blocks2, threads2 = call_utils.callCUDA(args.pos,args.zoom, (dimx,dimy),args.name,iterations=args.iter,
-                                                        block=args.blocks/factor,thread=args.threads,save=args.save, 
-                                                        mode=args.mode) 
-
-    print dimx, dimy, args.blocks, blocks1, args.threads, threads1, args.px_per_thread, time1
-    print dimx, dimy, args.blocks/factor, blocks2, args.threads, threads2, args.px_per_thread*factor, time2
-    
+    resultL = allocate_cores(dimx, dimy, args.threads, silent=True)
+    timeL = []
+    pptL = []
+    blocksL = []
+    for ppt, threads, blocks in resultL:
+        # eventually call 3-5 times and average
+        result, time,blocksA, threadsA = call_utils.callCUDA(args.pos,args.zoom, (dimx,dimy),args.name,iterations=args.iter,
+                                                              block=blocks,thread=threads,save=args.save, 
+                                                              mode=args.mode) 
+        
+        timeL.append(time)
+        blocksL.append(blocks)
+        pptL.append(ppt)
+        print '%6d,%6d:   %6d (%14s)  %4d (%12s) %5d   %f'%(dimx, dimy, blocks, blocksA, threads, threadsA, ppt, time)
+        
+    plot_data.loop_queue_plot(timeL, blocksL, pptL, dimx, dimy, threads, args.mode, xaxis='px_per_thread')
+    plot_data.loop_queue_plot(timeL, blocksL, pptL, dimx, dimy, threads, args.mode, xaxis='blocks')
     
 
 if __name__ == '__main__':
