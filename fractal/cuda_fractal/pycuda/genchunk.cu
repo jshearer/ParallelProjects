@@ -1,10 +1,5 @@
 #include <cuComplex.h>
 
-__device__ int map2Dto1D(int x, int y,int x_width)
-{
-  return x+(y*x_width);	
-}
-
 __global__ void gen(int px_per_block[2],int px_per_thread[2],int size[2],float position[2],float *zoom,
 		    int *iterations,int *result, int* progress,int action)
 { 	
@@ -24,7 +19,8 @@ __global__ void gen(int px_per_block[2],int px_per_thread[2],int size[2],float p
   
   float t_x, t_y;
   int i, x, y;
-  
+  int pixelVal;  // long int needed???
+
   cuFloatComplex z = cuFloatComplex();
   cuFloatComplex z_unchanging = cuFloatComplex();
   
@@ -32,9 +28,10 @@ __global__ void gen(int px_per_block[2],int px_per_thread[2],int size[2],float p
   
   for(x = startx; x < startx+px_per_thread[0]; x++){
     for(y = starty; y < starty+px_per_thread[1]; y++){
+      pixelVal = x + (y*size[0]); //   map2Dto1D(x,y,size[0]);
       if(action==4) //generate overlap map
 	{
-	  result[map2Dto1D(x,y,size[0])] = result[map2Dto1D(x,y,size[0])] + 1;
+	  result[pixelVal] = result[pixelVal] + 1;
 	  continue;
 	} 
       if(action==3)
@@ -58,10 +55,10 @@ __global__ void gen(int px_per_block[2],int px_per_thread[2],int size[2],float p
 	if((z_real*z_real + z_imag*z_imag)>4){
 	  if(action==0)//act cool, do the default
 	    {
-	      result[map2Dto1D(x,y,size[0])] = i;
+	      result[pixelVal] = i;
 	    } else if(action==1)// read+write test
 	    {
-	      result[map2Dto1D(x,y,size[0])] = result[map2Dto1D(x,y,size[0])] + 1;
+	      result[pixelVal] = result[pixelVal] + 1;
 	    }//else if action==2, do nothing
 	  break;
 	}
