@@ -1,6 +1,8 @@
 import tables as tab
 import numpy as np
+
 from version import get_version_info
+from call_utils import callCUDA
 
 NoSuchNodeError = tab.exceptions.NoSuchNodeError
 
@@ -88,7 +90,6 @@ def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
     Run callCUDA over a range of block and thread shapes and sizes, and collect data on time spent. 
     """
     # keep here so we only compile as needed
-    from call_utils import callCUDA
     
     global _data_file
 

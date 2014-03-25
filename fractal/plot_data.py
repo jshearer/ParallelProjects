@@ -15,6 +15,64 @@ import numpy as np
 
 _VERBOSE = False
 
+def loop_queue_plot(timeL, blocksL, pptL, dimx, dimy, threads, mode, xaxis, save=False, show=True):
+    xlog=True
+    ylog=False
+    times = np.array(timeL,dtype=np.float)
+    blocks = np.array(blocksL,dtype=np.float)
+    ppt = np.array(pptL,dtype=np.float)
+
+    if xaxis == 'px_per_thread':
+        x_axis = ppt
+        c_axis = blocks
+        clabel = 'Blocks'
+    elif xaxis == 'blocks':
+        x_axis = blocks
+        c_axis = ppt
+        clabel = 'px_per_thread'
+        
+    y_axis = times
+    
+    fig = plt.figure(figsize = (12,7)) # dpi=350
+
+    gspec = gridspec.GridSpec(1,3,width_ratios=[30,4,1])
+
+    ax = plt.subplot(gspec[0])
+
+    sc = ax.scatter(x_axis,y_axis,c=c_axis,marker="+",norm=pltlib.colors.LogNorm())    
+    cb_ax = plt.subplot(gspec[2])
+
+    cbar = fig.colorbar(sc, cax=cb_ax)
+    cbar.set_label(clabel)
+
+    ax.legend((sc,), ('Time',),scatterpoints=4,loc="upper center")
+    
+    ax.set_ylabel("Time to compute "+("log10" if ylog else "")+"(seconds)")
+    ax.set_xlabel("Number of CUDA %s"%xaxis+(", log10" if xlog else ""))
+
+    ax.set_xscale('log')
+    ax.grid(True)
+    ax.axis('tight')
+    modeS = {0:'write',1:'read and write',2:'raw compute',
+	     3:'atomicAdd test + regular write',4:'Overlap'}[mode]
+
+    fig.suptitle("Queue vs looping: pixels=(%d, %d) #threads = %d  mode=%s"%(dimx, dimy, threads, modeS))
+    plt.tight_layout()
+    
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+
+    if save:
+        fn = directory+"mode_"+str(mode)+"-id"+str(index)+".png"
+        with open(fn,'w') as f:
+            print 'Saving to ', fn
+            plt.savefig(f, figsize = (12,7)) 
+
+    # http://stackoverflow.com/questions/9012487/matplotlib-pyplot-savefig-outputs-blank-image
+    if show: plt.show()  # do nothing if Agg
+
+    plt.clf()
+	
+
 def makePlot(data,directory,xaxis='cores',xlog=True,ylog=False,ovlog=False,show=False,save=True):
     cores      = data[0]
     times      = data[1]

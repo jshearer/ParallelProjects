@@ -69,37 +69,48 @@ def genParameters(blocks,threads,dimensions,silent=False, useOrigChk=False, resp
 		print "thread dimensions that will reach every pixel. Reconsider."
 	raise ValueError("No valid parameters found")
 
+def allocate_cores(dimx, dimy, threads=1024, pptmin=1, pptmax=20000, silent=False):
+    dimsq = dimx*dimy
+    resultL = []
+    for ppt in range(pptmin, pptmax+1):
+        ppb = threads*ppt
+        blocks = int(dimsq/ppb)
+        if ppb*blocks == dimsq:
+            if not silent: print '%5d, %5d: %6d  %4d  %5d'%(dimx, dimy, blocks, threads, ppt)
+            resultL.append( (ppt, threads, blocks) )
+                            
+    return resultL
 
 def smallestPerim(val):
-	factors = [(i, val / i) for i in range(1, int(val**0.5)+1) if val % i == 0]
+    factors = [(i, val / i) for i in range(1, int(val**0.5)+1) if val % i == 0]
+    
+    best = None #1*a
+    
+    for factor in factors:
+        if best == None:
+            best = factor
+        elif (factor[0]+factor[1])<(best[0]+best[1]):
+            best = factor
 
-	best = None #1*a
-
-	for factor in factors:
-		if best == None:
-			best = factor
-		elif (factor[0]+factor[1])<(best[0]+best[1]):
-			best = factor
-
-	return np.array(best, dtype=np.int32)
+    return np.array(best, dtype=np.int32)
 
 def bestPerim(val,ratio): #Was an idea, doesn't quite fit yet.
-	factors = [(i, val / i) for i in range(1, int(val)+1) if val % i == 0]
+    factors = [(i, val / i) for i in range(1, int(val)+1) if val % i == 0]
+    
+    best = None
+    bestRatio = None
+    
+    for factor in factors:
+        if best == None:
+            best = factor
+            bestRatio = (float(best[0])/float(best[1]))
+        elif abs((float(factor[0])/float(factor[1]))-ratio) < abs(bestRatio-ratio):
+            best = factor
+            bestRatio = float(factor[0])/float(factor[1])
+            
+    return np.array(best)
 
-	best = None
-	bestRatio = None
-
-	for factor in factors:
-		if best == None:
-			best = factor
-			bestRatio = (float(best[0])/float(best[1]))
-		elif abs((float(factor[0])/float(factor[1]))-ratio) < abs(bestRatio-ratio):
-			best = factor
-			bestRatio = float(factor[0])/float(factor[1])
-
-	return np.array(best)
-
-if __name__ == '__main__':
+def _test_genParams():
     from string import join as sjoin
     print ' -----------------------------------------------------------------------'
     print ' |   blk,thd:: |    bestBlk  |  px_per_blk |    bstThd   |  px_per_thd | '
@@ -113,3 +124,9 @@ if __name__ == '__main__':
                 print ' |%4d, %4d:: | %s |'%(blocks, threads, sjoin(psOut, ' | '))
             except ValueError:
                 pass
+
+if __name__ == '__main__':
+                                                 
+    if 0: _test_genParams()
+
+    if 1: print allocate_cores(2048*13, 2048*13)
