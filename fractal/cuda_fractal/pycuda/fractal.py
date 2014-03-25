@@ -21,6 +21,7 @@ def In(thing):
 	cuda.memcpy_htod(thing_pointer, thing)
 	return thing_pointer
 
+# can be adapated to handle any number of cuda functions. 
 _genChunk=None
 def compileCuda(srcN='cuda_fractal/pycuda/genchunk.cu'):
         global _genChunk

@@ -32,10 +32,16 @@ __global__ void gen(int px_per_block[2],int px_per_thread[2],int size[2],float p
   
   for(x = startx; x < startx+px_per_thread[0]; x++){
     for(y = starty; y < starty+px_per_thread[1]; y++){
+      if(action==4) //generate overlap map
+	{
+	  result[map2Dto1D(x,y,size[0])] = result[map2Dto1D(x,y,size[0])] + 1;
+	  continue;
+	} 
       if(action==3)
 	{
 	  atomicAdd(progress,1);
 	}
+
       t_x = (x+position[0])/(*zoom);
       t_y = (y+position[1])/(*zoom);
       
@@ -43,28 +49,28 @@ __global__ void gen(int px_per_block[2],int px_per_thread[2],int size[2],float p
       z.y = t_y;
       z_unchanging.x = t_x;
       z_unchanging.y = t_y; //optomize this with pointer magic?
-      if(action==4) //generate overlap map
-	{
-	  result[map2Dto1D(x,y,size[0])] = result[map2Dto1D(x,y,size[0])] + 1;
-	} else
-	{
-	  for(i = 0; i<(*iterations) + 1; i++) {
-	    z = cuCmulf(z,z);
-	    z = cuCaddf(z,z_unchanging); //z = z^2 + z_orig
-	    z_real = cuCrealf(z);
-	    z_imag = cuCimagf(z);
-	    if((z_real*z_real + z_imag*z_imag)>4){
-	      if(action==0)//act cool, do the default
-		{
-		  result[map2Dto1D(x,y,size[0])] = i;
-		} else if(action==1)// read+write test
-		{
-		  result[map2Dto1D(x,y,size[0])] = result[map2Dto1D(x,y,size[0])] + 1;
-		}//else if action==2, do nothing
-	      break;
-	    }
-	  }
+      
+      for(i = 0; i<(*iterations) + 1; i++) {
+	z = cuCmulf(z,z);
+	z = cuCaddf(z,z_unchanging); //z = z^2 + z_orig
+	z_real = cuCrealf(z);
+	z_imag = cuCimagf(z);
+	if((z_real*z_real + z_imag*z_imag)>4){
+	  if(action==0)//act cool, do the default
+	    {
+	      result[map2Dto1D(x,y,size[0])] = i;
+	    } else if(action==1)// read+write test
+	    {
+	      result[map2Dto1D(x,y,size[0])] = result[map2Dto1D(x,y,size[0])] + 1;
+	    }//else if action==2, do nothing
+	  break;
 	}
+      }
     }
   }
 }
+
+/* Local Variables:  */
+/* mode: c           */
+/* comment-column: 0 */
+/* End:              */
