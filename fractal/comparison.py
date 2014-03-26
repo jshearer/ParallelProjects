@@ -1,4 +1,5 @@
 from math import sqrt
+import numpy as np
 
 import call_utils
 import plot_data
@@ -97,22 +98,29 @@ def runQueueLoopComparison(args):
     """
     dimx,dimy=args.dim
     resultL = allocate_cores(dimx, dimy, args.threads, silent=True)
-    timeL = []
-    pptL = []
-    blocksL = []
+    if args.mode != 4:
+        timeL = []
+        pptL = []
+        blocksL = []
     for ppt, threads, blocks in resultL:
         # eventually call 3-5 times and average
         result, time,blocksA, threadsA = call_utils.callCUDA(args.pos,args.zoom, (dimx,dimy),args.name,iterations=args.iter,
-                                                              block=blocks,thread=threads,save=args.save, 
-                                                              mode=args.mode) 
-        
-        timeL.append(time)
-        blocksL.append(blocks)
-        pptL.append(ppt)
-        print '%6d,%6d:   %6d (%14s)  %4d (%12s) %5d   %f'%(dimx, dimy, blocks, blocksA, threads, threadsA, ppt, time)
-        
-    plot_data.loop_queue_plot(timeL, blocksL, pptL, dimx, dimy, threads, args.mode, xaxis='px_per_thread')
-    plot_data.loop_queue_plot(timeL, blocksL, pptL, dimx, dimy, threads, args.mode, xaxis='blocks')
+                                                             block=blocks,thread=threads,save=args.save, 
+                                                             mode=args.mode) 
+        if args.mode != 4:
+            timeL.append(time)
+            blocksL.append(blocks)
+            pptL.append(ppt)
+            print '%6d,%6d:   %6d (%14s)  %4d (%12s) %5d   %f'%(dimx, dimy, blocks, blocksA, threads, threadsA, ppt, time)
+        else:
+            # should be zero, on average, really want to see if there are any zeros or numbers > 2
+            # overlap =  np.sum(result)-(result.shape[0]*result.shape[1])
+            overlap = np.prod( result )
+            print '%6d,%6d:   %6d (%14s)  %4d (%12s) %5d   %d (%d %d)'%(dimx, dimy, blocks, blocksA, threads, threadsA, ppt, overlap, np.amin(result), np.amax(result))
+
+    if args.mode != 4:
+        plot_data.loop_queue_plot(timeL, blocksL, pptL, dimx, dimy, threads, args.mode, xaxis='px_per_thread')
+        plot_data.loop_queue_plot(timeL, blocksL, pptL, dimx, dimy, threads, args.mode, xaxis='blocks')
     
 
 if __name__ == '__main__':

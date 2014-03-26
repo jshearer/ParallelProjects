@@ -72,6 +72,7 @@ def GenerateFractal(dimensions,position,zoom,iterations,scale=1,action=0,block=(
 
 	zoom = numpy.float32(zoom)
 	iterations = numpy.int32(iterations)
+        # store this with dimensions as key, so we can re-use. zero it in genchunk.cu
 	result = numpy.zeros(dimensions,dtype=numpy.int32)
 
 	#Center position
