@@ -129,4 +129,4 @@ if __name__ == '__main__':
                                                  
     if 0: _test_genParams()
 
-    if 1: print allocate_cores(2048*13, 2048*13)
+    if 1: print allocate_cores(2048*16, 2048*16)
