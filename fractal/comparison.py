@@ -56,57 +56,36 @@ def runGeneration(arguments):
     print "("+("CUDA" if arguments.procCuda else "CPU")+") run took "+str(time)+"s."        
 
 def runQueueLoopComparison(args):
-    """1. lets take pixels_per_thread for queueing case greater than 1, so
-    lets say 10, 50
+    """
+    wherein we investiagte the relative advantages of queueing blocks
+    vs having bigger for-loops in order to get the same amount of work
+    done.
 
-    2. blocks*threads = dimx*dimy/ px_per_thread, so if we take
-    threads = 512, px_per_thread = 50, and blocks = 4096, then that
-    defines dimx*dimy
-
-    dimx * dimy = 4096*512 * px_per_thread
-
-    3. pick a dimx and a dimy
-
-    4. run that dimx, dimy, px_per_thread=10, or 50, say, 4096 blocks, 512 threads.
-
-    5, then run the same but with blocks = 512
-
-    zoom=900
-    iterations = 100
-                            px
-                           per
-     dimx  dimy blks thds  thd      time
-    -----------------------------------------
-    19968 19968 4992 1024   78  0.408787567139
-    19968 19968 2496 1024  156  0.447927703857
-
-    19968 19968 4992 1024   78  0.4087394104
-    19968 19968 1248 1024  312  0.464446563721
- 
-    29952 29952 4992  512  351  1.17091418457
-    29952 29952 2496  512  702  1.18278723145
-
-    29952 29952 4992  512  351  1.17207836914
-    29952 29952 1248  512 1404  1.19653564453
-
-    even with 4:1 W::H:
-    Doing (runQueueLoopComparison) run. Position: [-1.3, 0.0], Dimensions: [1024, 1024], Zoom: 900.0, Iterations: 100
-    59904 14976 4992 512 351 1.16753649902
-    59904 14976 2496 512 702 1.18160949707
-
+    here we fix a thread-per-block count, solve for the set of integer
+    values of blocks and pixels-per-thread that tile a fixed size
+    image, and time the runs. 
 
     """
     dimx,dimy=args.dim
     resultL = allocate_cores(dimx, dimy, args.threads, silent=True)
+    if len(resultL)==0:
+        print 'No valid integer solutions to dimx*dimy = blocks*threads*ppt'
+        exit(0)
+
     if args.mode != 4:
         timeL = []
         pptL = []
         blocksL = []
     for ppt, threads, blocks in resultL:
         # eventually call 3-5 times and average
-        result, time,blocksA, threadsA = call_utils.callCUDA(args.pos,args.zoom, (dimx,dimy),args.name,iterations=args.iter,
-                                                             block=blocks,thread=threads,save=args.save, 
-                                                             mode=args.mode) 
+        try:
+            result, time,blocksA, threadsA = call_utils.callCUDA(args.pos,args.zoom, (dimx,dimy),args.name,iterations=args.iter,
+                                                                 block=blocks,thread=threads,save=args.save, 
+                                                                 mode=args.mode) 
+        except ValueError, e:
+            print e
+            continue
+
         if args.mode != 4:
             timeL.append(time)
             blocksL.append(blocks)
