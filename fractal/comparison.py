@@ -68,6 +68,8 @@ def runQueueLoopComparison(args):
     """
     dimx,dimy=args.dim
     resultL = allocate_cores(dimx, dimy, args.threads, silent=True)
+    #resultL = ( (12, 1024, 2496 ), (6, 1024, 4992) )
+    #resultL = ( (195, 1024, 2496 ), (97, 1024, 4992) )
     if len(resultL)==0:
         print 'No valid integer solutions to dimx*dimy = blocks*threads*ppt'
         exit(0)
