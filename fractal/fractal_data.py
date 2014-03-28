@@ -49,6 +49,14 @@ class MetaData(tab.IsDescription):
     
 mode_identifier = {0:'write',1:'read+write',2:'no_rw', 3:'atomicAdd+write',4:'Overlap'}
 
+# TODO: alternative scheme would allow access to a row in a table from
+# an outside function. basically, a wrapper around the row
+# handlers. or better, a wrapper around the table for functions to
+# access. grabs a row object after entering meta data, then can write
+# rows for that meta data. when a new run occurs, grab a new row
+# object for new row data. if the meta row exists alreay, warn or
+# raise.
+
 # TODO: how to make generic versions of cudaCollect, alreadyRan,
 # extractCols, extractMetaData, etc. i.e., not dependent on any
 # particular problem, like fractal, etc.
@@ -82,7 +90,30 @@ def _get_new_meta_index():
     indexL.sort()
     newIndex = indexL[-1]+1
     return newIndex
-    
+
+class RowAppender(object):
+    # maybe the row iterator already stores in temp dict???
+    # return the row iterator, the appender, and the flusher
+    # check first if we need a new meta row via the chkMetaL 
+    # or we could check on the wrapped append, push in an index from there
+
+    def __init__(self, tablePath, chkMetaL):
+        self._table = tablePath
+        self._chkMetaL = chkMetaL
+        self._keys = _getFieldNames(self._table)
+        self.__dict = {}
+        pass
+
+    def append(self, key, val):
+        # write to table, add index/FK, then reset local/temp dict
+        # dont forget to flush (ask for this???)
+        pass
+
+    def __setitem__(self, key, val):
+
+        # set a local temp dict, and then write to table on append at once.
+        pass
+
     
 # TODO: we should supply data as dicts, or allied, so we can automagically populate rows
 def cudaCollect(position,zoom,dimensions,execData,mode=0,iterations=100):
