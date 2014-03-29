@@ -10,7 +10,7 @@ _VERBOSE = False
 
 _data_file = None  # module private
 
-class ExecutionData(tab.IsDescription):
+class TimingData(tab.IsDescription):
     metaIndexFK       = tab.Int32Col()
     block_x           = tab.Int32Col()
     block_y           = tab.Int32Col()
@@ -226,7 +226,7 @@ def init(filename='fractalData.h5'):
 
     if not ("/TimingData/data" in _data_file.root):
         print 'Creating data table'        
-        _data_file.createTable('/TimingData', 'data', ExecutionData, 'Fractal timing data')
+        _data_file.createTable('/TimingData', 'data', TimingData, 'Fractal timing data')
         
     if not ("/TimingData/meta" in _data_file.root):
         print 'Creating meta table'
