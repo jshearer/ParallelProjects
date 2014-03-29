@@ -27,6 +27,22 @@ Position: [-1.1, 0.0], Dimensions: [6240, 8192], Zoom: 2000.0, Iterations: 200
 	
 		Average: 0.0620784848531s
 
+======================   LES's useOrigChk=True==============================
+python -O comparison.py --position -1.1 0 --dimensions 6240 8192  --threads 1024 --zoom 2000 --iterations 200 queue
+Doing (runQueueLoopComparison) run. Position: [-1.1, 0.0], Dimensions: [6240, 8192], Zoom: 2000.0, Iterations: 200
+Compiled and got function gen
+  6240,  8192:     2496 (  (1, 2496, 1))  1024 ( (512, 2, 1))    12   0.051865
+  6240,  8192:     4992 (  (1, 4992, 1))  1024 ((1024, 1, 1))     6   0.056502
+
+======================   LES's useOrigChk=False==============================
+python -O comparison.py --position -1.1 0 --dimensions 6240 8192  --threads 1024 --zoom 2000 --iterations 200 queue
+Doing (runQueueLoopComparison) run. Position: [-1.1, 0.0], Dimensions: [6240, 8192], Zoom: 2000.0, Iterations: 200
+Compiled and got function gen
+  6240,  8192:     2496 (   (39, 64, 1))  1024 ( (8, 128, 1))    12   0.041327
+  6240,  8192:     4992 (  (39, 128, 1))  1024 ( (16, 64, 1))     6   0.036954
+============================================================================
+
+
 As a percentage of time, queueing blocks with relatively small
 dimensions appears to add an overhead of approximately 11.7% or
 0.00651 seconds.
@@ -60,7 +76,19 @@ Position: [-1.1, 0.0], Dimensions: [24960, 32768], Zoom: 8000.0, Iterations: 200
 
 		Average: 1.00232590738s
 
-
+======================   LES's useOrigChk=True==============================
+ython -O comparison.py --position -1.1 0 --dimensions 24960 32768  --threads 1024 --zoom 8000 --iterations 200 queue
+Doing (runQueueLoopComparison) run. Position: [-1.1, 0.0], Dimensions: [24960, 32768], Zoom: 8000.0, Iterations: 200
+Compiled and got function gen
+ 24960, 32768:     2496 (  (1, 2496, 1))  1024 ( (128, 8, 1))   195   0.947614
+ 24960, 32768:     4992 (  (1, 4992, 1))  1024 ( (256, 4, 1))    97   0.976315
+======================   LES's useOrigChk=False==============================
+python -O comparison.py --position -1.1 0 --dimensions 24960 32768  --threads 1024 --zoom 8000 --iterations 200 queue
+Doing (runQueueLoopComparison) run. Position: [-1.1, 0.0], Dimensions: [24960, 32768], Zoom: 8000.0, Iterations: 200
+Compiled and got function gen
+ 24960, 32768:     2496 (   (39, 64, 1))  1024 ( (2, 512, 1))   195   1.063022
+ 24960, 32768:     4992 (  (39, 128, 1))  1024 ( (4, 256, 1))    97   1.042172
+============================================================================
 
 
 As a percentage of time, queueing blocks with relatively large
