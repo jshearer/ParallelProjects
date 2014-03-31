@@ -1,9 +1,4 @@
-#Plotting ODEs, Isoclines using Python
-#x,y = var("x y")
-#eq = y^3-3*y-x
-#p = implicit_plot(eq==0,(x,-4,4),(y,-4,4))
-#p += plot_slope_field(eq, (x,-4,4),(y,-4,4), headlength=1e-8)
-#p.show(aspect_ratio=1)
+from pylab import *
 
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
@@ -11,26 +6,54 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 
-       
-from pylab import *
-xmax = 2.0
-xmin = 0.0
-D = 20
-ymax = xmax/2
-ymin = -ymax
-x = linspace(xmin, xmax, D+1)
-y = linspace(ymin, ymax, 2*D+1)
-X, Y = meshgrid(x, y)
-deg = arctan(-Y)
-QP = quiver(X,Y,cos(deg),sin(deg))
-xlabel('$x$')
-ylabel('$y$')
-title(r'$\frac{dy}{dx} = -y$')
-yexp = exp(-x)
-y1exp = 0.5*exp(-x)
-ymexp = -exp(-x)
-ym1exp = -0.5*exp(-x)
+def _isocline_plot(x,y, func, curveL, theTitle, xlab, ylab):
+    X, Y = meshgrid(x, y)
+    deg = func(X,Y)
+    QP = quiver(X,Y,cos(deg),sin(deg))
+    xlabel(xlab)
+    ylabel(ylab)
 
-for ys in (yexp, y1exp, ymexp, ym1exp):
-    plot(x, ys)
-show()
+    for ys in curveL:
+        plot(x, ys)
+
+    title(theTitle)
+    show()
+    
+    
+
+def isocline_exponential():
+    xmax = 2.0
+    xmin = 0.0
+    D = 20
+    ymax = xmax/2
+    ymin = -ymax
+    x = linspace(xmin, xmax, D+1)
+    y = linspace(ymin, ymax, 2*D+1)
+    yexp = exp(-x)
+    y1exp = 0.5*exp(-x)
+    ymexp = -exp(-x)
+    ym1exp = -0.5*exp(-x)
+
+    def slope(x,y):
+        return arctan( -y )
+    
+    _isocline_plot(x,y, slope, (yexp, y1exp, ymexp, ym1exp), r'$\frac{dy}{dx} = -y$', 'x', 'y')
+
+
+def isocline_oscillator():
+    xmax = 2.0
+    xmin = -xmax
+    ymax = xmax
+    ymin = -ymax
+    D = 20
+    x = linspace(xmin, xmax, D+1)
+    y = linspace(ymin, ymax, 2*D+1)
+
+    def slope(x,y):
+        return arctan2( -x, y )
+    
+    _isocline_plot(x,y, slope, (), r'$\frac{dv}{dx} = -x/v$', 'x', 'v')
+    
+if __name__ == '__main__':
+    if 0: isocline_exponential()
+    if 1: isocline_oscillator()
