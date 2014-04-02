@@ -1,0 +1,213 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 8.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[      7191,        204]
+NotebookOptionsPosition[      6914,        190]
+NotebookOutlinePosition[      7251,        205]
+CellTagsIndexPosition[      7208,        202]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{"Needs", "[", "\"\<PlotLegends`\>\"", "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"y0", " ", "=", " ", "1"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"xmax", " ", "=", " ", "9"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"nmax", " ", "=", " ", "5"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"\[CapitalDelta]x", " ", "=", " ", 
+   RowBox[{"xmax", "/", "nmax"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"theTitle", " ", "=", " ", 
+   RowBox[{"StringForm", "[", 
+    RowBox[{"\"\<\[CapitalDelta]x = ``\>\"", ",", " ", 
+     RowBox[{"\[CapitalDelta]x", "//", "N"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"theX", " ", "=", " ", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"n", " ", "\[CapitalDelta]x"}], ",", " ", 
+     RowBox[{"{", 
+      RowBox[{"n", ",", "0", ",", "nmax"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"theExactSoln", " ", "=", " ", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"y0", " ", 
+      RowBox[{"Exp", "[", 
+       RowBox[{
+        RowBox[{"-", " ", "n"}], " ", "\[CapitalDelta]x"}], "]"}]}], ",", " ", 
+     RowBox[{"{", 
+      RowBox[{"n", ",", "0", ",", " ", "nmax"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"theNumericalSoln", " ", "=", "  ", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"y0", " ", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"1", "-", " ", "\[CapitalDelta]x"}], ")"}], "^", "n"}]}], ",",
+      " ", 
+     RowBox[{"{", 
+      RowBox[{"n", ",", "0", ",", " ", "nmax"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"theImplicitSoln", " ", "=", " ", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"y0", " ", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"1", "+", " ", "\[CapitalDelta]x"}], ")"}], "^", 
+       RowBox[{"(", 
+        RowBox[{"-", "n"}], ")"}]}]}], ",", " ", 
+     RowBox[{"{", 
+      RowBox[{"n", ",", "0", ",", " ", "nmax"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"ListLinePlot", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+    "theExactSoln", ",", " ", "theNumericalSoln", ",", " ", 
+     "theImplicitSoln"}], "}"}], ",", " ", 
+   RowBox[{"DataRange", "\[Rule]", " ", 
+    RowBox[{"{", 
+     RowBox[{"0", ",", "xmax"}], "}"}]}], ",", " ", 
+   RowBox[{"PlotLegend", "\[Rule]", " ", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<Exact\>\"", ",", " ", "\"\<Numerical\>\"", ",", " ", 
+      "\"\<Implicit\>\""}], "}"}]}], ",", " ", 
+   RowBox[{"PlotRange", "\[Rule]", " ", "All"}], ",", " ", 
+   RowBox[{"PlotLabel", "\[Rule]", " ", "theTitle"}]}], 
+  "]"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.6054638793268948`*^9, 3.605464073742174*^9}, {
+   3.605464109315296*^9, 3.605464240641686*^9}, {3.605464289278036*^9, 
+   3.605464290261372*^9}, {3.6054643415442333`*^9, 3.6054643577988253`*^9}, {
+   3.605464470898169*^9, 3.605464564278079*^9}, {3.605464661157659*^9, 
+   3.6054647283349867`*^9}, {3.6054651368865*^9, 3.6054651406886787`*^9}, {
+   3.605465179180091*^9, 3.60546520711954*^9}, {3.605465264919607*^9, 
+   3.605465320638517*^9}, {3.605465463811634*^9, 3.605465467964028*^9}, {
+   3.60546558852789*^9, 3.605465603147156*^9}, {3.605466642416573*^9, 
+   3.605466642513679*^9}, 3.605466697643506*^9, {3.6054667304262667`*^9, 
+   3.605466731010158*^9}, 3.6054667807687473`*^9, {3.605466857895268*^9, 
+   3.605466857999436*^9}, {3.605466889617135*^9, 3.605466890241385*^9}, {
+   3.6054670225478163`*^9, 3.605467137113796*^9}, {3.605467249693227*^9, 
+   3.6054672774234457`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{"n1max", "=", "40"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"xmax", " ", "=", " ", "8"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"\[Delta]x1", " ", "=", " ", 
+  RowBox[{
+   RowBox[{"xmax", "/", "n1max"}], "//", "N"}]}], "\[IndentingNewLine]", 
+ RowBox[{"\[Delta]x2", " ", "=", " ", 
+  RowBox[{
+   RowBox[{"4", " ", "\[Delta]x1"}], "//", "N"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"n2max", "=", 
+   RowBox[{"n1max", "/", "4"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"theExactSoln", " ", "=", " ", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"n", " ", "\[Delta]x1"}], ",", 
+       RowBox[{"y0", " ", 
+        RowBox[{"Exp", "[", 
+         RowBox[{
+          RowBox[{"-", " ", "n"}], " ", "\[Delta]x1"}], "]"}]}]}], "}"}], ",",
+      " ", 
+     RowBox[{"{", 
+      RowBox[{"n", ",", "0", ",", " ", "n1max"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"theNumericalSoln", " ", "=", "  ", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"n", " ", "\[Delta]x1"}], ",", " ", 
+       RowBox[{"y0", " ", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"1", "-", " ", "\[Delta]x1"}], ")"}], "^", "n"}]}]}], "}"}],
+      ",", " ", 
+     RowBox[{"{", 
+      RowBox[{"n", ",", "0", ",", " ", "n1max"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"theImplicitSoln", " ", "=", " ", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"n", " ", "\[Delta]x2"}], ",", 
+       RowBox[{"y0", " ", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"1", "+", " ", "\[Delta]x2"}], ")"}], "^", 
+         RowBox[{"(", 
+          RowBox[{"-", "n"}], ")"}]}]}]}], "}"}], ",", " ", 
+     RowBox[{"{", 
+      RowBox[{"n", ",", "0", ",", " ", "n2max"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"ListLinePlot", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+    "theExactSoln", ",", " ", "theNumericalSoln", ",", " ", 
+     "theImplicitSoln"}], "}"}], ",", " ", 
+   RowBox[{"PlotLegend", "\[Rule]", " ", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<Exact\>\"", ",", " ", "\"\<Numerical\>\"", ",", " ", 
+      "\"\<Implicit\>\""}], "}"}]}], ",", " ", 
+   RowBox[{"PlotRange", "\[Rule]", " ", "All"}]}], 
+  "]"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.605465790690913*^9, 3.6054659977873287`*^9}, {
+   3.6054660336460543`*^9, 3.605466156313572*^9}, {3.6054661992539253`*^9, 
+   3.605466199343474*^9}, {3.60546626523359*^9, 3.605466270437065*^9}, 
+   3.6054663577390747`*^9, {3.605466405019492*^9, 3.605466415375917*^9}, {
+   3.605466498955806*^9, 3.605466505990117*^9}}]
+},
+WindowSize->{936, 1018},
+WindowMargins->{{455, Automatic}, {Automatic, 0}},
+FrontEndVersion->"8.0 for Linux x86 (64-bit) (October 10, 2011)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 3618, 90, 259, "Input"],
+Cell[4178, 112, 2732, 76, 221, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)
