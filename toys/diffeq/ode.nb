@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     27211,        636]
-NotebookOptionsPosition[     26846,        620]
-NotebookOutlinePosition[     27185,        635]
-CellTagsIndexPosition[     27142,        632]
+NotebookDataLength[     27537,        640]
+NotebookOptionsPosition[     27171,        624]
+NotebookOutlinePosition[     27510,        639]
+CellTagsIndexPosition[     27467,        636]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -327,25 +327,27 @@ Cell[BoxData[{
           RowBox[{"\"\<ev expr: ``\>\"", ",", " ", "evExpr"}], "]"}], "]"}]}],
         "]"}], ";"}]}], "\[IndentingNewLine]", "]"}]}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"nStep", " ", "=", " ", "5"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{"VisualizeSeries", "[", 
   RowBox[{"implV", ",", " ", 
    RowBox[{"{", 
-    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "1"}], 
+    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "nStep"}], 
   "]"}], "\[IndentingNewLine]", 
  RowBox[{"VisualizeSeries", "[", 
   RowBox[{"implX", ",", " ", 
    RowBox[{"{", 
-    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "1"}], 
+    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "nStep"}], 
   "]"}], "\[IndentingNewLine]", 
  RowBox[{"VisualizeSeries", "[", 
   RowBox[{"implVX", ",", " ", 
    RowBox[{"{", 
-    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "1"}], 
+    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "nStep"}], 
   "]"}], "\[IndentingNewLine]", 
  RowBox[{"VisualizeSeries", "[", 
   RowBox[{"implXV", ",", " ", 
    RowBox[{"{", 
-    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "1"}], 
+    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "nStep"}], 
   "]"}], "\[IndentingNewLine]"}], "Input",
  CellChangeTimes->{{3.60560033239602*^9, 3.605600398939206*^9}, {
    3.6056004541728487`*^9, 3.605600495709503*^9}, {3.6056005536822863`*^9, 
@@ -402,7 +404,9 @@ Cell[BoxData[{
    3.605632425679638*^9, 3.60563243271868*^9}, {3.605632527280366*^9, 
    3.605632614290855*^9}, {3.605632691336425*^9, 3.605632727626511*^9}, {
    3.605632869102646*^9, 3.605632878160123*^9}, {3.605632924130693*^9, 
-   3.605632951735855*^9}}],
+   3.605632951735855*^9}, {3.605639458259094*^9, 3.6056394796854477`*^9}, {
+   3.605639563209882*^9, 3.605639563693121*^9}, 3.605639671232608*^9, {
+   3.605640075664936*^9, 3.6056400757821302`*^9}, 3.6056415710232983`*^9}],
 
 Cell[BoxData[
  RowBox[{
@@ -477,9 +481,7 @@ Cell[BoxData[
            RowBox[{
             RowBox[{"pts", "[", 
              RowBox[{"[", "i", "]"}], "]"}], " ", ",", " ", 
-            RowBox[{"ImageSize", "\[Rule]", 
-             RowBox[{"{", 
-              RowBox[{"150", ",", "150"}], "}"}]}], ",", 
+            RowBox[{"ImageSize", "\[Rule]", "100"}], ",", 
             RowBox[{"AspectRatio", "\[Rule]", "Automatic"}], ",", " ", 
             RowBox[{"PlotStyle", "\[Rule]", 
              RowBox[{"PointSize", "[", "0.005", "]"}]}], ",", 
@@ -616,10 +618,12 @@ Cell[BoxData[
    3.6056365593983583`*^9}, 3.605636721455502*^9, {3.6056374336016827`*^9, 
    3.605637539207242*^9}, {3.6056375901687183`*^9, 3.60563760346774*^9}, {
    3.6056377853395033`*^9, 3.6056378130477552`*^9}, {3.605637941129066*^9, 
-   3.605637941704194*^9}, {3.605639043994699*^9, 3.605639086587722*^9}}]
+   3.605637941704194*^9}, {3.605639043994699*^9, 3.605639086587722*^9}, {
+   3.6056416417244177`*^9, 3.605641642362094*^9}, {3.605641742528125*^9, 
+   3.605641742960414*^9}}]
 },
 WindowSize->{1137, 1063},
-WindowMargins->{{143, Automatic}, {Automatic, 0}},
+WindowMargins->{{140, Automatic}, {Automatic, 0}},
 FrontEndVersion->"8.0 for Linux x86 (64-bit) (February 23, 2011)",
 StyleDefinitions->"Default.nb"
 ]
@@ -636,8 +640,8 @@ CellTagsIndex->{}
 Notebook[{
 Cell[557, 20, 3618, 90, 259, "Input"],
 Cell[4178, 112, 2732, 76, 221, "Input"],
-Cell[6913, 190, 9733, 214, 487, "Input"],
-Cell[16649, 406, 10193, 212, 430, "Input"]
+Cell[6913, 190, 10027, 218, 506, "Input"],
+Cell[16943, 410, 10224, 212, 430, "Input"]
 }
 ]
 *)
