@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     27537,        640]
-NotebookOptionsPosition[     27171,        624]
-NotebookOutlinePosition[     27510,        639]
-CellTagsIndexPosition[     27467,        636]
+NotebookDataLength[     27200,        623]
+NotebookOptionsPosition[     26836,        607]
+NotebookOutlinePosition[     27174,        622]
+CellTagsIndexPosition[     27131,        619]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -245,13 +245,20 @@ Cell[BoxData[{
     RowBox[{"\[Delta]t", "\[Rule]", 
      RowBox[{"\[Delta]t", "/", "2"}]}]}], "//", 
    "Expand"}]}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"implXV", " ", "=", " ", 
+ RowBox[{"implXV", " ", "=", " ", 
+  RowBox[{
    RowBox[{
-    RowBox[{
-     RowBox[{"implX", ".", "implV"}], " ", "/.", " ", 
-     RowBox[{"\[Delta]t", "\[Rule]", 
-      RowBox[{"\[Delta]t", "/", "2"}]}]}], "//", "Expand"}]}], 
+    RowBox[{"implX", ".", "implV"}], " ", "/.", " ", 
+    RowBox[{"\[Delta]t", "\[Rule]", 
+     RowBox[{"\[Delta]t", "/", "2"}]}]}], "//", 
+   "Expand"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"funcL", " ", "=", " ", 
+    RowBox[{"{", 
+     RowBox[{
+     "reg", ",", " ", "impl", ",", " ", "implV", ",", " ", "implX", ",", " ", 
+      "implXV", ",", " ", "implVX"}], "}"}]}], ";"}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{
@@ -325,30 +332,28 @@ Cell[BoxData[{
         RowBox[{"Print", "[", 
          RowBox[{"StringForm", "[", 
           RowBox[{"\"\<ev expr: ``\>\"", ",", " ", "evExpr"}], "]"}], "]"}]}],
-        "]"}], ";"}]}], "\[IndentingNewLine]", "]"}]}], 
+        "]"}], ";", "\[IndentingNewLine]", 
+      RowBox[{"Print", "[", 
+       RowBox[{
+       "StringForm", "[", "\"\<============================\>\"", "]"}], 
+       "]"}], ";"}]}], "\[IndentingNewLine]", "]"}]}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"nStep", " ", "=", " ", "5"}], ";"}], "\[IndentingNewLine]", 
- RowBox[{"VisualizeSeries", "[", 
-  RowBox[{"implV", ",", " ", 
-   RowBox[{"{", 
-    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "nStep"}], 
-  "]"}], "\[IndentingNewLine]", 
- RowBox[{"VisualizeSeries", "[", 
-  RowBox[{"implX", ",", " ", 
-   RowBox[{"{", 
-    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "nStep"}], 
-  "]"}], "\[IndentingNewLine]", 
- RowBox[{"VisualizeSeries", "[", 
-  RowBox[{"implVX", ",", " ", 
-   RowBox[{"{", 
-    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "nStep"}], 
-  "]"}], "\[IndentingNewLine]", 
- RowBox[{"VisualizeSeries", "[", 
-  RowBox[{"implXV", ",", " ", 
-   RowBox[{"{", 
-    RowBox[{"1", ",", "0"}], "}"}], ",", " ", "nStep"}], 
-  "]"}], "\[IndentingNewLine]"}], "Input",
+  RowBox[{"nStep", " ", "=", " ", "1"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"For", "[", " ", 
+  RowBox[{
+   RowBox[{"i", "=", "1"}], ",", " ", 
+   RowBox[{"i", "\[LessEqual]", 
+    RowBox[{"Length", "[", "funcL", "]"}]}], ",", " ", 
+   RowBox[{"i", "++"}], ",", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"VisualizeSeries", "[", 
+     RowBox[{
+      RowBox[{"funcL", "[", 
+       RowBox[{"[", "i", "]"}], "]"}], ",", " ", 
+      RowBox[{"{", 
+       RowBox[{"x0", ",", "v0"}], "}"}], ",", " ", "1"}], "]"}], ";"}]}], 
+  "\[IndentingNewLine]", "]"}], "\[IndentingNewLine]"}], "Input",
  CellChangeTimes->{{3.60560033239602*^9, 3.605600398939206*^9}, {
    3.6056004541728487`*^9, 3.605600495709503*^9}, {3.6056005536822863`*^9, 
    3.60560056682953*^9}, {3.605600653831276*^9, 3.605600658742999*^9}, {
@@ -406,7 +411,11 @@ Cell[BoxData[{
    3.605632869102646*^9, 3.605632878160123*^9}, {3.605632924130693*^9, 
    3.605632951735855*^9}, {3.605639458259094*^9, 3.6056394796854477`*^9}, {
    3.605639563209882*^9, 3.605639563693121*^9}, 3.605639671232608*^9, {
-   3.605640075664936*^9, 3.6056400757821302`*^9}, 3.6056415710232983`*^9}],
+   3.605640075664936*^9, 3.6056400757821302`*^9}, 3.6056415710232983`*^9, {
+   3.605657754126873*^9, 3.6056577866369534`*^9}, {3.605657840547736*^9, 
+   3.605657846852076*^9}, {3.6056578915136347`*^9, 3.605657900042026*^9}, {
+   3.605657966265188*^9, 3.605657967190647*^9}, {3.605658017057859*^9, 
+   3.60565809438974*^9}, {3.605658144105166*^9, 3.605658205690933*^9}}],
 
 Cell[BoxData[
  RowBox[{
@@ -416,12 +425,6 @@ Cell[BoxData[
     RowBox[{
      RowBox[{"scheme", "!!"}], "!"}]}], "  ", "*)"}], "\[IndentingNewLine]", 
   RowBox[{
-   RowBox[{
-    RowBox[{"funcL", " ", "=", " ", 
-     RowBox[{"{", 
-      RowBox[{
-      "reg", ",", " ", "impl", ",", " ", "implV", ",", " ", "implX", ",", " ",
-        "implXV", ",", " ", "implVX"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
    RowBox[{
     RowBox[{"Lab", " ", "=", " ", 
      RowBox[{"{", 
@@ -503,47 +506,24 @@ Cell[BoxData[
             RowBox[{"Length", "[", "pts", "]"}]}], "}"}]}], "]"}], "]"}]}]}], 
      "\[IndentingNewLine]", "]"}]}], "\[IndentingNewLine]", 
    "\[IndentingNewLine]", 
-   RowBox[{"J", " ", "=", " ", "80"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"J", " ", "=", " ", "80"}], ";"}], "\[IndentingNewLine]", 
    RowBox[{
     RowBox[{"\[Delta]T", " ", "=", " ", 
      RowBox[{"2", " ", 
       RowBox[{"Pi", " ", "/", " ", "J"}]}]}], " ", ";"}], 
    "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"pts", " ", "=", " ", 
-     RowBox[{"GenPlots", "[", 
-      RowBox[{"\[Delta]T", ",", " ", "J", ",", " ", "ListLinePlot"}], "]"}]}],
-     ";"}], "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"pts", " ", "=", " ", 
-     RowBox[{"GenPlots", "[", 
-      RowBox[{
-       RowBox[{"2", "\[Delta]T"}], ",", " ", "J", ",", " ", "ListPlot"}], 
-      "]"}]}], ";"}], "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"pts", " ", "=", " ", 
-     RowBox[{"GenPlots", "[", 
-      RowBox[{
-       RowBox[{"3", " ", "\[Delta]T"}], ",", " ", "J", ",", " ", "ListPlot"}],
-       "]"}]}], ";"}], "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"pts", " ", "=", " ", 
-     RowBox[{"GenPlots", "[", 
-      RowBox[{
-       RowBox[{"4", "\[Delta]T"}], ",", " ", "J", ",", " ", "ListPlot"}], 
-      "]"}]}], ";"}], "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"pts", " ", "=", " ", 
-     RowBox[{"GenPlots", "[", 
-      RowBox[{
-       RowBox[{"5", " ", "\[Delta]T"}], ",", " ", "J", ",", " ", "ListPlot"}],
-       "]"}]}], ";"}], "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"pts", " ", "=", " ", 
-     RowBox[{"GenPlots", "[", 
-      RowBox[{
-       RowBox[{"6", "\[Delta]T"}], ",", " ", "J", ",", " ", "ListPlot"}], 
-      "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"For", "[", 
+    RowBox[{
+     RowBox[{"K", "=", "1"}], ",", " ", 
+     RowBox[{"K", "\[LessEqual]", "6"}], ",", 
+     RowBox[{"K", "++"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"GenPlots", "[", 
+       RowBox[{
+        RowBox[{"K", " ", "\[Delta]T"}], ",", " ", "J", ",", " ", 
+        "ListPlot"}], "]"}], ";"}]}], "\[IndentingNewLine]", "]"}], 
+   "\[IndentingNewLine]", 
    RowBox[{
     RowBox[{"pts", " ", "=", " ", 
      RowBox[{"GenPlots", "[", 
@@ -620,10 +600,13 @@ Cell[BoxData[
    3.6056377853395033`*^9, 3.6056378130477552`*^9}, {3.605637941129066*^9, 
    3.605637941704194*^9}, {3.605639043994699*^9, 3.605639086587722*^9}, {
    3.6056416417244177`*^9, 3.605641642362094*^9}, {3.605641742528125*^9, 
-   3.605641742960414*^9}}]
+   3.605641742960414*^9}, 3.605657959637368*^9, 3.605657990240184*^9, {
+   3.605658584333152*^9, 3.605658656043531*^9}, 3.605658714513509*^9, {
+   3.6056587601811132`*^9, 3.605658774054511*^9}, 3.6056588371749163`*^9, {
+   3.605658924894444*^9, 3.605658925613324*^9}}]
 },
-WindowSize->{1137, 1063},
-WindowMargins->{{140, Automatic}, {Automatic, 0}},
+WindowSize->{996, 1081},
+WindowMargins->{{322, Automatic}, {Automatic, 0}},
 FrontEndVersion->"8.0 for Linux x86 (64-bit) (February 23, 2011)",
 StyleDefinitions->"Default.nb"
 ]
@@ -640,8 +623,8 @@ CellTagsIndex->{}
 Notebook[{
 Cell[557, 20, 3618, 90, 259, "Input"],
 Cell[4178, 112, 2732, 76, 221, "Input"],
-Cell[6913, 190, 10027, 218, 506, "Input"],
-Cell[16943, 410, 10224, 212, 430, "Input"]
+Cell[6913, 190, 10540, 227, 525, "Input"],
+Cell[17456, 419, 9376, 186, 373, "Input"]
 }
 ]
 *)
