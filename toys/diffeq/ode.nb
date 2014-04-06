@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     27200,        623]
-NotebookOptionsPosition[     26836,        607]
-NotebookOutlinePosition[     27174,        622]
-CellTagsIndexPosition[     27131,        619]
+NotebookDataLength[     30277,        684]
+NotebookOptionsPosition[     29850,        666]
+NotebookOutlinePosition[     30210,        682]
+CellTagsIndexPosition[     30167,        679]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -257,27 +257,44 @@ Cell[BoxData[{
    RowBox[{"funcL", " ", "=", " ", 
     RowBox[{"{", 
      RowBox[{
-     "reg", ",", " ", "impl", ",", " ", "implV", ",", " ", "implX", ",", " ", 
-      "implXV", ",", " ", "implVX"}], "}"}]}], ";"}], 
+      RowBox[{"{", 
+       RowBox[{"reg", ",", " ", "\"\<Fwd Euler\>\""}], "}"}], ",", " ", 
+      RowBox[{"{", 
+       RowBox[{"impl", ",", " ", "\"\<Euler Implicit\>\""}], "}"}], ",", " ", 
+      
+      RowBox[{"{", 
+       RowBox[{"implV", ",", " ", "\"\<Implicit V\>\""}], "}"}], ",", " ", 
+      RowBox[{"{", 
+       RowBox[{"implX", ",", "\"\<Implicit X\>\""}], "}"}], ",", " ", 
+      RowBox[{"{", 
+       RowBox[{"implXV", ",", "\"\<Implicit X\[SmallCircle]V\>\""}], " ", 
+       "}"}], ",", " ", 
+      RowBox[{"{", 
+       RowBox[{"implVX", ",", " ", "\"\<Implicit V\[SmallCircle]X\>\""}], 
+       "}"}]}], "}"}]}], ";"}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{
    RowBox[{"VisualizeSeries", "[", 
-    RowBox[{"transM_", ",", "initVec_", ",", " ", "numIters_"}], "]"}], " ", ":=",
-    "  ", 
-   RowBox[{"Module", "[", 
+    RowBox[{"transformM_", ",", "initVec_", ",", " ", "numIters_"}], "]"}], 
+   " ", ":=", "  ", 
+   RowBox[{"Module", "[", "\[IndentingNewLine]", 
     RowBox[{
      RowBox[{"{", 
       RowBox[{
       "evals", ",", "evecs", ",", "\[Alpha]", ",", " ", "\[Beta]", ",", "  ", 
-       "vecTrans", ",", " ", "evExpr", ",", " ", "matExpr"}], "}"}], ",", 
-     "\[IndentingNewLine]", 
+       "vecTrans", ",", " ", "evExpr", ",", " ", "matExpr", ",", 
+       "transName"}], "}"}], ",", "\[IndentingNewLine]", 
      RowBox[{
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"transM", ",", " ", "transName"}], "}"}], "=", "transformM"}],
+       ";", "\[IndentingNewLine]", 
       RowBox[{"Print", "[", 
        RowBox[{"StringForm", "[", 
-        RowBox[{"\"\<Transformation is: ``\>\"", ",", " ", 
-         RowBox[{"MatrixForm", "[", "transM", "]"}]}], "]"}], "]"}], ";", 
-      "\[IndentingNewLine]", 
+        RowBox[{"\"\<Transformation is: ``  (``)\>\"", ",", " ", 
+         RowBox[{"MatrixForm", "[", "transM", "]"}], ",", "transName"}], 
+        "]"}], "]"}], ";", "\[IndentingNewLine]", 
       RowBox[{
        RowBox[{"{", 
         RowBox[{"evals", ",", "evecs"}], "}"}], " ", "=", " ", 
@@ -312,15 +329,15 @@ Cell[BoxData[{
         "MatrixForm"}]}], ";", "\[IndentingNewLine]", 
       RowBox[{"matExpr", " ", "=", " ", 
        RowBox[{
-        RowBox[{
-         RowBox[{"MatrixPower", "[", 
-          RowBox[{"transM", ",", " ", "numIters", ",", " ", "initVec"}], 
-          "]"}], "//", "Expand"}], "//", "MatrixForm"}]}], ";", 
-      "\[IndentingNewLine]", 
+        RowBox[{"MatrixPower", "[", 
+         RowBox[{"transM", ",", " ", "numIters", ",", " ", "initVec"}], "]"}],
+         "//", "Expand"}]}], ";", "\[IndentingNewLine]", 
       RowBox[{"Print", "[", 
        RowBox[{"StringForm", "[", 
-        RowBox[{"\"\<mat expr: ``\>\"", ",", " ", "matExpr"}], "]"}], "]"}], 
-      ";", "\[IndentingNewLine]", 
+        RowBox[{"\"\<mat expr: ``\>\"", ",", " ", 
+         RowBox[{
+          RowBox[{"matExpr", "-", "initVec"}], "//", "MatrixForm"}]}], "]"}], 
+       "]"}], ";", "\[IndentingNewLine]", 
       RowBox[{"Print", "[", 
        RowBox[{"StringForm", "[", 
         RowBox[{
@@ -415,7 +432,14 @@ Cell[BoxData[{
    3.605657754126873*^9, 3.6056577866369534`*^9}, {3.605657840547736*^9, 
    3.605657846852076*^9}, {3.6056578915136347`*^9, 3.605657900042026*^9}, {
    3.605657966265188*^9, 3.605657967190647*^9}, {3.605658017057859*^9, 
-   3.60565809438974*^9}, {3.605658144105166*^9, 3.605658205690933*^9}}],
+   3.60565809438974*^9}, {3.605658144105166*^9, 3.605658205690933*^9}, {
+   3.605703906166585*^9, 3.605703935144024*^9}, {3.605704625938137*^9, 
+   3.605704701184442*^9}, {3.60572560492461*^9, 3.6057258229829683`*^9}, {
+   3.605725906452829*^9, 3.605725912155514*^9}, {3.605730314547867*^9, 
+   3.605730367237631*^9}, {3.605737487392126*^9, 3.605737524917378*^9}, {
+   3.6057433237141523`*^9, 3.6057433258813*^9}, {3.605743363645224*^9, 
+   3.60574336673654*^9}, {3.605743419871035*^9, 3.6057434355505123`*^9}, {
+   3.605743512553184*^9, 3.6057435922645807`*^9}}],
 
 Cell[BoxData[
  RowBox[{
@@ -426,23 +450,23 @@ Cell[BoxData[
      RowBox[{"scheme", "!!"}], "!"}]}], "  ", "*)"}], "\[IndentingNewLine]", 
   RowBox[{
    RowBox[{
-    RowBox[{"Lab", " ", "=", " ", 
-     RowBox[{"{", 
-      RowBox[{
-      "\"\<Regular\>\"", ",", " ", "\"\<Implicit\>\"", ",", " ", 
-       "\"\<ImplicitV\>\"", ",", " ", "\"\<ImplicitX\>\"", ",", " ", 
-       "\"\<ImplicitXV\>\"", ",", " ", "\"\<ImplicitVX\>\""}], "}"}]}], ";"}],
-    "\[IndentingNewLine]", 
-   RowBox[{
     RowBox[{"GenPlots", "[", 
-     RowBox[{"\[Delta]t0_", ",", " ", "numIters_", ",", " ", "plotFunc_"}], 
-     "]"}], " ", ":=", " ", 
+     RowBox[{
+     "\[Delta]t0_", ",", " ", "numIters_", ",", " ", "plotFunc_", ",", " ", 
+      RowBox[{"OptionsPattern", "[", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"plotMax", "\[Rule]", "1.3"}], ",", " ", 
+         RowBox[{"imgSz", "\[Rule]", "100"}]}], "}"}], "]"}]}], " ", "]"}], 
+    " ", ":=", " ", 
     RowBox[{"Module", "[", 
      RowBox[{
       RowBox[{"{", 
-       RowBox[{"pts", ",", " ", 
-        RowBox[{"max", "=", "1.3"}]}], "}"}], ",", "\[IndentingNewLine]", 
+       RowBox[{"pts", ",", " ", "max"}], "}"}], ",", "\[IndentingNewLine]", 
       RowBox[{
+       RowBox[{"max", " ", "=", " ", 
+        RowBox[{"OptionValue", "[", "plotMax", "]"}]}], ";", 
+       "\[IndentingNewLine]", 
        RowBox[{"Print", "[", 
         RowBox[{"StringForm", "[", 
          RowBox[{
@@ -467,7 +491,8 @@ Cell[BoxData[
               RowBox[{
                RowBox[{
                 RowBox[{"funcL", "[", 
-                 RowBox[{"[", "k", "]"}], "]"}], "/.", 
+                 RowBox[{"[", 
+                  RowBox[{"k", ",", "1"}], "]"}], "]"}], "/.", 
                 RowBox[{"\[Delta]t", "\[Rule]", "\[Delta]t0"}]}], "//", "N"}],
                " ", ",", "j", ",", " ", "init"}], "]"}], ",", " ", 
             RowBox[{"{", 
@@ -484,7 +509,8 @@ Cell[BoxData[
            RowBox[{
             RowBox[{"pts", "[", 
              RowBox[{"[", "i", "]"}], "]"}], " ", ",", " ", 
-            RowBox[{"ImageSize", "\[Rule]", "100"}], ",", 
+            RowBox[{"ImageSize", "\[Rule]", 
+             RowBox[{"OptionValue", "[", "imgSz", "]"}]}], ",", 
             RowBox[{"AspectRatio", "\[Rule]", "Automatic"}], ",", " ", 
             RowBox[{"PlotStyle", "\[Rule]", 
              RowBox[{"PointSize", "[", "0.005", "]"}]}], ",", 
@@ -499,8 +525,9 @@ Cell[BoxData[
                  RowBox[{"-", "max"}], ",", "max"}], "}"}]}], "}"}]}], " ", 
             ",", " ", 
             RowBox[{"PlotLabel", "\[Rule]", " ", 
-             RowBox[{"Lab", "[", 
-              RowBox[{"[", "i", "]"}], "]"}]}]}], "]"}], ",", " ", 
+             RowBox[{"funcL", "[", 
+              RowBox[{"[", 
+               RowBox[{"i", ",", "2"}], "]"}], "]"}]}]}], "]"}], ",", " ", 
           RowBox[{"{", 
            RowBox[{"i", ",", "1", ",", 
             RowBox[{"Length", "[", "pts", "]"}]}], "}"}]}], "]"}], "]"}]}]}], 
@@ -525,22 +552,19 @@ Cell[BoxData[
         "ListPlot"}], "]"}], ";"}]}], "\[IndentingNewLine]", "]"}], 
    "\[IndentingNewLine]", 
    RowBox[{
-    RowBox[{"pts", " ", "=", " ", 
-     RowBox[{"GenPlots", "[", 
-      RowBox[{"0.25", ",", " ", "800", ",", " ", "ListLinePlot"}], "]"}]}], 
+    RowBox[{"GenPlots", "[", 
+     RowBox[{"0.25", ",", " ", "800", ",", " ", "ListLinePlot"}], "]"}], 
     ";"}], "\[IndentingNewLine]", 
    RowBox[{
-    RowBox[{"pts", " ", "=", " ", 
-     RowBox[{"GenPlots", "[", 
-      RowBox[{
-       RowBox[{"Pi", "/", "4"}], ",", " ", "8", ",", " ", "ListLinePlot"}], 
-      "]"}]}], ";"}], "\[IndentingNewLine]", 
+    RowBox[{"GenPlots", "[", 
+     RowBox[{
+      RowBox[{"Pi", "/", "4"}], ",", " ", "8", ",", " ", "ListLinePlot"}], 
+     "]"}], ";"}], "\[IndentingNewLine]", 
    RowBox[{
-    RowBox[{"pts", " ", "=", " ", 
-     RowBox[{"GenPlots", "[", 
-      RowBox[{
-       RowBox[{"Pi", "/", "4"}], ",", " ", "128", ",", " ", "ListPlot"}], 
-      "]"}]}], ";"}]}]}]], "Input",
+    RowBox[{"GenPlots", "[", 
+     RowBox[{
+      RowBox[{"Pi", "/", "4"}], ",", " ", "128", ",", " ", "ListPlot"}], 
+     "]"}], ";"}], "\[IndentingNewLine]"}]}]], "Input",
  CellChangeTimes->{{3.605608592607132*^9, 3.60560881214625*^9}, {
    3.6056088974921722`*^9, 3.6056090034836187`*^9}, {3.6056095562697268`*^9, 
    3.605609568639738*^9}, {3.605610301697698*^9, 3.605610319644105*^9}, {
@@ -603,10 +627,46 @@ Cell[BoxData[
    3.605641742960414*^9}, 3.605657959637368*^9, 3.605657990240184*^9, {
    3.605658584333152*^9, 3.605658656043531*^9}, 3.605658714513509*^9, {
    3.6056587601811132`*^9, 3.605658774054511*^9}, 3.6056588371749163`*^9, {
-   3.605658924894444*^9, 3.605658925613324*^9}}]
+   3.605658924894444*^9, 3.605658925613324*^9}, {3.605726376186413*^9, 
+   3.6057264550711308`*^9}, {3.605726529536968*^9, 3.60572653144063*^9}, {
+   3.6057394213725157`*^9, 3.60573950188098*^9}, {3.605739647421809*^9, 
+   3.605739669916018*^9}, 3.605739743190103*^9, {3.6057409048782263`*^9, 
+   3.605740912832601*^9}, {3.605741012489192*^9, 3.60574103325744*^9}, {
+   3.605741189918623*^9, 3.605741203595456*^9}, {3.605741298149138*^9, 
+   3.605741368247027*^9}, {3.605741575181608*^9, 3.605741580801086*^9}, {
+   3.6057416684333076`*^9, 3.605741676064115*^9}, {3.605741807110609*^9, 
+   3.605741844616149*^9}, {3.6057419727655573`*^9, 3.6057419801041527`*^9}, {
+   3.605742144164535*^9, 3.605742147425706*^9}, {3.6057423446301203`*^9, 
+   3.60574234505694*^9}, {3.6057424022484426`*^9, 3.605742423765292*^9}, {
+   3.605742670292296*^9, 3.605742715167775*^9}, {3.605742814949274*^9, 
+   3.605742817283287*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"GenPlots", "[", 
+   RowBox[{
+    RowBox[{"3", 
+     RowBox[{"Pi", " ", "/", " ", "5"}]}], ",", " ", "80", ",", " ", 
+    "ListPlot", ",", " ", 
+    RowBox[{"plotMax", "\[Rule]", "3"}], ",", " ", 
+    RowBox[{"imgSz", "\[Rule]", " ", "150"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"GenPlots", "[", 
+   RowBox[{
+    RowBox[{"2", 
+     RowBox[{"Pi", " ", "/", " ", "3"}]}], ",", " ", "80", ",", " ", 
+    "ListPlot", ",", " ", 
+    RowBox[{"plotMax", "\[Rule]", "100"}], ",", " ", 
+    RowBox[{"imgSz", "\[Rule]", " ", "150"}]}], "]"}], ";"}]}], "Input",
+ CellChangeTimes->{{3.605739757461426*^9, 3.6057397952692623`*^9}, {
+  3.6057413960271072`*^9, 3.605741414667428*^9}, {3.6057424364605722`*^9, 
+  3.605742443740922*^9}, {3.605743103028696*^9, 3.605743143652028*^9}, {
+  3.6057432082145357`*^9, 3.605743225530534*^9}}]
 },
-WindowSize->{996, 1081},
-WindowMargins->{{322, Automatic}, {Automatic, 0}},
+WindowSize->{1143, 1081},
+WindowMargins->{{212, Automatic}, {0, Automatic}},
+ShowSelection->True,
 FrontEndVersion->"8.0 for Linux x86 (64-bit) (February 23, 2011)",
 StyleDefinitions->"Default.nb"
 ]
@@ -623,8 +683,9 @@ CellTagsIndex->{}
 Notebook[{
 Cell[557, 20, 3618, 90, 259, "Input"],
 Cell[4178, 112, 2732, 76, 221, "Input"],
-Cell[6913, 190, 10540, 227, 525, "Input"],
-Cell[17456, 419, 9376, 186, 373, "Input"]
+Cell[6913, 190, 11784, 251, 582, "Input"],
+Cell[18700, 443, 10264, 198, 373, "Input"],
+Cell[28967, 643, 879, 21, 50, "Input"]
 }
 ]
 *)
