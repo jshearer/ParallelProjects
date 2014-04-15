@@ -1,0 +1,47 @@
+Simulator:
+
+	Input:
+
+		Parameters:
+			* Input
+			* Validation
+			* Storage
+
+		Initial conditions (Setup Phase):
+			* Manipulation of parameters into useful forms
+			* Initial plasma generation
+			* Data and constant passing to kernel
+			* Other environment setup for kernel to run
+
+	Process:
+
+		For every particle (Simulate Phase):
+			* Calculate force
+			* Step
+			* Boundry condition **Could be done here, or in seperate kernel, or some other method**
+			* Dust grain collection **Multiple methods. Ex: store number of times intersected and aggregate after n steps**
+
+		After n timesteps (Collect Phase):
+			* Pause simulation:
+				* Aggregate data **Potentially parallelizable here. I.E summing total intersections etc.**
+				* Pass current data back to host **Or just pause simulation while host reads data?**
+				* Zero out per-particle accumulators such as dust grain hits
+
+			* Resume simulation
+
+	Output:
+
+		Every n timesteps (Data Phase):
+			* Receive slice **Either by having it passed back, or manually cudamcpying it, or the singular memory method etc**
+			* Store data about slice
+			* Store ever nth particle for visualization purposes later
+			* Alert the user, update graphs etc.???
+
+		After simulation is done:
+			* Clean up, etc.
+			* Run final Data Phase with last set of data
+			* Run any sort of post-post processing. 
+				* Generate complete graphs
+				* Density heatmaps
+				* Videos?
+				* Animatons?
