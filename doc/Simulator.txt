@@ -1,47 +1,124 @@
 Simulator:
 
-    Input:
+	Input:
 
-        Parameters:
-            * Input
-            * Validation
-            * Storage
+		Parameters:
+			* Input
+			* Validation
+			* Storage
 
-        Initial conditions (Setup Phase):
-            * Manipulation of parameters into useful forms
-            * Initial plasma generation
-            * Data and constant passing to kernel
-            * Other environment setup for kernel to run
+		Initial conditions (Setup Phase):
+			* Manipulation of parameters into useful forms
+			* Initial plasma generation
+			* Data and constant passing to kernel
+			* Other environment setup for kernel to run
 
-    Process:
+	Process:
 
-        For every particle (Simulate Phase):
-            * Calculate force
-            * Step
-            * Boundry condition **Could be done here, or in seperate kernel, or some other method**
-            * Dust grain collection **Multiple methods. Ex: store number of times intersected and aggregate after n steps**
+		For every particle (Simulate Phase):
+			* Calculate force with pluggable module
+				- brute force do it
+				- particle in a cell electrostatics 
+				- tree schemes for hierarchices of particles
+			* Particle integration with pluggable module:
+				- modified Euler (half implicit method)
+				- plasma leapfrogging
+				- symplectic methods
+			* Boundary condition **Could be done here, or in seperate kernel, or some other method**
+				- planar boundary conditions
+				- plane crossing detection
+ 				- need appropriate particle replacement algorithms
+			* Dust grain collection **Multiple methods. Ex: store number of times intersected and aggregate after n steps**. 
+				- conceivable that we would do preconditioning w/o collection to achieve some steady state before doing the charging simulation.
+		
+		After n timesteps (Collect Phase):
+			* Pause simulation:
+				* Aggregate data **Potentially parallelizable here. I.E summing total intersections etc.**
+				* Pass current data back to host **Or just pause simulation while host reads data?**
+				* Zero out per-particle accumulators such as dust grain hits
 
-        After n timesteps (Collect Phase):
-            * Pause simulation:
-                * Aggregate data **Potentially parallelizable here. I.E summing total intersections etc.**
-                * Pass current data back to host **Or just pause simulation while host reads data?**
-                * Zero out per-particle accumulators such as dust grain hits
+			* Resume simulation
 
-            * Resume simulation
+		Idea:
+			consider writing a small say 32 thread kernel, which launces the main kernel from the GPU to do J timesteps of queued threads. 
+			
 
-    Output:
+	Output:
 
-        Every n timesteps (Data Phase):
-            * Receive slice **Either by having it passed back, or manually cudamcpying it, or the singular memory method etc**
-            * Store data about slice
-            * Store ever nth particle for visualization purposes later
-            * Alert the user, update graphs etc.???
+		Every n timesteps (Data Phase):
+			* Receive slice **Either by having it passed back, or manually cudamcpying it, or the singular memory method etc**
+			* Store data about slice
+			* Store ever nth particle for visualization purposes later
+			* Alert the user, update graphs etc.???
 
-        After simulation is done:
-            * Clean up, etc.
-            * Run final Data Phase with last set of data
-            * Run any sort of post-post processing. 
-                * Generate complete graphs
-                * Density heatmaps
-                * Videos?
-                * Animatons?
+		After simulation is done:
+			* Clean up, etc.
+			* Run final Data Phase with last set of data
+			* Run any sort of post-post processing. 
+				* Generate complete graphs
+				* Density heatmaps
+				* Videos?
+				* Animatons?
+	Transport:
+		Memory allocated on host, transported minimal times to device. preferably once if possible, seems to use DMA
+		Idea: do much post-processing on GPU, and pre-allocate diagnostic memory slabs, and pull those back to CPU for visulziatio, storage, analysis, etc
+		Use Structure of arrays
+		Would allow optimal post-rpceossing, perhaps even on a thread on the host while device happily spins away periodically filling diagnostc memory.. 
+		Design periodic storage of particle positions on disk in case system crashes. this could be every hour, every day 
+		Could use flag system so when host is reading diagnostic memory, GPU agrees not to push it.
+
+
+Here are two ways to get around the problem with synchronization.
+
+Way 1:
+
+* Have one kernel accumulate all forces and store them in global memory along side the particle data
+
+Way 2:
+
+* Launch max number of threads/blocks, and simply store forces in
+  local memory. Then use a system of flags or semaphores in memory to
+  indicate when every thread is done, and integrate from there.
+
+
+
+Problem
+--------
+The problem we encountered is that of synchronization. The crux of the
+issue is that no matter what scheme your choose for accumulating and
+integrating, you cannot begin to update particle positions before all
+the forces have been calculated first, lest you risk getting erroneous
+force calculations in some cases. For this reason, queuing
+blocks/threads is not possible, as some threads would have to finish
+(and therefore, integrate: update positions in global memory) before
+the other threads can even begin calculating, which cannot happen.
+
+Therefore, we have come up with two potential solutions to the
+problem. 
+
+The first solution would entail a system of flags in which all blocks
+and threads, looping over miltiple particles per thread, would be
+utilized without queuing, and once and only once all of the forces
+have been calculated and stored locally in the threads' registers,
+does the system allow for the updating of particle data in global
+memory.
+
+The second system we came up with involves multiple kernel launches,
+and would effectively reduce the maximum number of particles by one
+half. In this scheme, one kernel is launched to calculate the forces,
+and store these forces in global memory. Once that force calculation
+kernel has finished, only then will the kernel for integration be
+launched and all the positions will be updated with the stored force
+data.
+
+		
+April todo list
+1. improve understaning of differential equation solvers, review Les' Mathematica, look at particle solves for plasma
+2. look at force calculation problem, review literature
+3. block out simulation procedure
+4. block out system design and key components
+5. boundary conditions, grain's plasma collection,  memory, kernel launch
+6. plotting routines
+7. database
+8. initial conditions
+9. simple numerical experiments to perform at first
