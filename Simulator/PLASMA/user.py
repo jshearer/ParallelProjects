@@ -8,3 +8,4 @@ class User(Base):
 	parent_id = 	Column(Integer, ForeignKey(id))
 
 	children = 		relationship("User", backref=backref("parent", remote_side=[id]))
+

@@ -1,5 +1,6 @@
 from database_setup import *
 from decl_enum import *
+from kernel import KernelScope
 
 class SimulationState(DeclEnum):
 	container = "container", "A simulation that will never be run. Used for grouping simulations."
@@ -16,9 +17,9 @@ class SimulationState(DeclEnum):
 class Simulation(Base):
 	__tablename__ = "simulations"
 	id = 		Column(Integer, primary_key=True)
-	step = 		Column(Integer)
-	steps = 	Column(Integer)
-	state = 	Column(SimulationState.db_type())
+	step = 		Column(Integer, default=0)
+	steps = 	Column(Integer, default=0)
+	state = 	Column(SimulationState.db_type(),default=SimulationState.pre_start)
 	parent_id = Column(Integer, ForeignKey(id), nullable=True)
 	user_id = 	Column(Integer, ForeignKey("users.id"))
 
@@ -27,21 +28,22 @@ class Simulation(Base):
 
 	@hybrid_property
 	def pre_kernels(self):
-	    return tuple(kernel for kernel in self.kernels if kernel.scope is KernelScope.pre_sim)
+	    return [kernel for kernel in self.kernels if kernel.scope is KernelScope.pre_sim]
 	@pre_kernels.expression
 	def pre_kernels():
 	    return select([Kernel]).where(Kernel.scope==KernelScope.pre_sim)
 
 	@hybrid_property
 	def sim_kernels(self):
-	    return tuple(kernel for kernel in self.kernels if kernel.scope is KernelScope.simulate)
+	    return [kernel for kernel in self.kernels if kernel.scope is KernelScope.simulate]
 	@sim_kernels.expression
 	def sim_kernels():
 	    return select([Kernel]).where(Kernel.scope==KernelScope.simulate)
 
 	@hybrid_property
 	def post_kernels(self):
-	    return tuple(kernel for kernel in self.kernels if kernel.scope is KernelScope.post_sim)
+	    return [kernel for kernel in self.kernels if kernel.scope is KernelScope.post_sim]
 	@post_kernels.expression
 	def post_kernels():
 	    return select([Kernel]).where(Kernel.scope==KernelScope.post_sim)
+

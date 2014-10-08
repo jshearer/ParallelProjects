@@ -10,12 +10,12 @@ class Kernel(Base):
 	__tablename__ = "kernels"
 	id = 			Column(Integer, primary_key=True)
 	scope = 		Column(KernelScope.db_type())
-	type = 			Column(String)
 	simulation_id = Column(Integer, ForeignKey("simulations.id"))
-	name =	 		Column(String)
+	name =	 		Column(String, default="base")
 	description = 	Column(String)
 
-	__mapper_args__ = {'polymorphic_on':type} #check http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/ at the end to see why this is awesome
+	__mapper_args__ = {"polymorphic_on":name,
+					   "polymorphic_identity":"base"} #check http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/ at the end to see why this is awesome
 
 	simulation = 	relationship("Simulation", backref="kernels")
 
@@ -34,13 +34,14 @@ class Note(Base):
 class Argument(Base):
 	__tablename__ = "arguments"
 	id = 			Column(Integer, primary_key=True)
-	name =	 		Column(String)
+	name =	 		Column(String, default="base")
 	description = 	Column(String)
 	value = 		Column(PickleType)
-	parent_id = 	Column(Integer, ForeignKey(id), nullable=True)
+	parent_id = 	Column(Integer, ForeignKey(id))
 	kernel_id = 	Column(Integer, ForeignKey("kernels.id"))
 
-	__mapper_args__ = {'polymorphic_on':name}
+	__mapper_args__ = {"polymorphic_on":name,
+					   "polymorphic_identity":"base"} #check http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/ at the end to see why this is awesome
 
 	children = 		relationship("Argument", backref=backref("parent", remote_side=[id]))
 	kernel = 		relationship("Kernel", backref=backref("arguments", order_by=id))
@@ -49,10 +50,11 @@ class Argument(Base):
 class Diagnostic(Base):
 	__tablename__ = "diagnostics"
 	id = 			Column(Integer, primary_key=True)
-	name =	 		Column(String)
+	name =	 		Column(String, default="base")
 	content = 		Column(PickleType)
 	kernel_id = 	Column(Integer, ForeignKey("kernels.id"))
 
-	__mapper_args__ = {'polymorphic_on':name}
+	__mapper_args__ = {"polymorphic_on":name,
+					   "polymorphic_identity":"base"} #check http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/ at the end to see why this is awesome
 
 	kernel = 		relationship("Kernel", backref=backref("diagnostics", order_by=id))
