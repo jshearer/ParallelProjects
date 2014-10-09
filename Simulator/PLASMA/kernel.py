@@ -46,6 +46,12 @@ class Argument(Base):
 	children = 		relationship("Argument", backref=backref("parent", remote_side=[id]))
 	kernel = 		relationship("Kernel", backref=backref("arguments", order_by=id))
 
+	def validate(self):
+		for child in self.children:
+			if not child.validate:
+				return false
+		return true
+
 
 class Diagnostic(Base):
 	__tablename__ = "diagnostics"
