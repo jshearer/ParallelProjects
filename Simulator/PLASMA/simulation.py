@@ -25,6 +25,10 @@ class Simulation(Base):
 
 	children = 	relationship("Simulation", backref=backref("parent", remote_side=[id]))
 	user = 		relationship("User", backref=backref("simulations", order_by=id))
+	'''
+	from kernel class:
+	simulation = 	relationship("Simulation", backref="kernels")
+	'''
 
 	@hybrid_property
 	def pre_kernels(self):

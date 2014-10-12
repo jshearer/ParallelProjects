@@ -19,6 +19,18 @@ class Kernel(Base):
 					   "polymorphic_identity":"Base"} #check http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/ at the end to see why this is awesome
 
 	simulation = 	relationship("Simulation", backref="kernels")
+	'''
+	from class Argument
+	kernel = 		relationship("Kernel", backref=backref("arguments", order_by=id))
+	'''
+
+	def __init__(self,name="Base",description=None,scope=None):
+		self.name = name
+		self.description = description
+		self.scope = scope
+
+	def execute():
+		raise NotImplementedError("The kernel base class cannot be executed.")
 
 class Note(Base):
 	__tablename__ = "notes"
