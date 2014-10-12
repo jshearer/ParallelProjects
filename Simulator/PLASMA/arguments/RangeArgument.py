@@ -6,7 +6,8 @@ class RangeArgument(Argument):
 	__mapper_args__ = {'polymorphic_identity': 'RangeArgument'}
 
 	def __init__(self,arg,range):
-		Argument.__init__(self,name="RangeArgument",description="An argument with a defined numeric range.")
+		self.name = "RangeArgument"
+		self.description = "An argument with a defined numeric range."
 		self.arg = arg
 		self.range = range
 

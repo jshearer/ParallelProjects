@@ -13,6 +13,7 @@ class Kernel(Base):
 	scope = 		Column(KernelScope.db_type())
 	simulation_id = Column(Integer, ForeignKey("simulations.id"))
 	name =	 		Column(String, default="Base")
+	after_every = 	Column(Integer, default=1)
 	description = 	Column(String)
 
 	__mapper_args__ = {"polymorphic_on":name,
@@ -23,11 +24,6 @@ class Kernel(Base):
 	from class Argument
 	kernel = 		relationship("Kernel", backref=backref("arguments", order_by=id))
 	'''
-
-	def __init__(self,name="Base",description=None,scope=None):
-		self.name = name
-		self.description = description
-		self.scope = scope
 
 	def execute():
 		raise NotImplementedError("The kernel base class cannot be executed.")
@@ -49,7 +45,7 @@ class Argument(Base):
 	id = 			Column(Integer, primary_key=True)
 	name =	 		Column(String, default="Base")
 	description = 	Column(String)
-	data = 			Column(PickleType(pickler=json), default=dict())
+	data = 			Column(PickleType, default=dict())
 	parent_id = 	Column(Integer, ForeignKey(id))
 	kernel_id = 	Column(Integer, ForeignKey("kernels.id"))
 
@@ -58,13 +54,6 @@ class Argument(Base):
 
 	children = 		relationship("Argument", backref=backref("parent", remote_side=[id]))
 	kernel = 		relationship("Kernel", backref=backref("arguments", order_by=id))
-
-	def __init__(self,name="Base",description=None,data=dict(),parent=None,kernel=None):
-		self.name = name
-		self.description = description
-		self.data = data
-		self.parent = parent
-		self.kernel = kernel
 
 	'''
 	_validate is a recursive function, and exists on all subclasses.

@@ -2,20 +2,14 @@ from kernel import Kernel, KernelScope
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import Column, Integer, String, PickleType, ForeignKey
 
-class PresimulateKernel(Kernel):
-	__mapper_args__ = {'polymorphic_identity': 'PresimulateKernel'}
-
+class PreSimulateKernel(Kernel):
 	def __init__(self):
-		Kernel.__init__(self,scope=KernelScope.pre_sim,name="PresimulateKernel")
+		self.scope = KernelScope.pre_sim
 
 class SimulateKernel(Kernel):
-	__mapper_args__ = {'polymorphic_identity': 'SimulateKernel'}
-
 	def __init__(self):
-		Kernel.__init__(self,scope=KernelScope.simulate,name="SimulateKernel")
+		self.scope = KernelScope.simulate
 
-class PostsimulateKernel(Kernel):
-	__mapper_args__ = {'polymorphic_identity': 'PostsimulateKernel'}
-
+class PostSimulateKernel(Kernel):
 	def __init__(self):
-		Kernel.__init__(self,scope=KernelScope.post_sim,name="PostsimulateKernel")
+		self.scope = KernelScope.post_sim
