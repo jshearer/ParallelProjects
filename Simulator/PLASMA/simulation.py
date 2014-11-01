@@ -66,18 +66,18 @@ class Simulation(Base):
 	def run(self):
 		self.state = SimulationState.initializing
 		for presim in self.pre_kernels:
-			presim.execute(self.arguments)
+			presim.execute(self.arguments,self.diagnostics)
 		self.state = SimulationState.initialized
 
 		self.state = SimulationState.running
 		for self.step in range(0,self.steps):
 			for sim in self.sim_kernels:
 				if self.step%sim.after_every == 0:
-					sim.execute(self.arguments)
+					sim.execute(self.arguments,self.diagnostics)
 
 		self.state = SimulationState.finishing
 		for postsim in self.post_kernels:
-			postsim.execute(self.arguments)
+			postsim.execute(self.arguments,self.diagnostics)
 
 		self.state = SimulationState.finished
 

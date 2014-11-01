@@ -7,6 +7,7 @@ from PLASMA.user import User
 
 from PLASMA.kernels.test.TestKernels import PreSimTest,SimTest,PostSimTest
 from PLASMA.kernels.Kernel_Bases import PreSimulateKernel, SimulateKernel, PostSimulateKernel
+from PLASMA.kernels.test.RangeKernelsTest import PostSimRangeTest, PreSimRangeTest, SimRangeTest
 from PLASMA.arguments.RangeArgument import RangeArgument
 
 from PLASMA import Base  # This is your declarative base class
@@ -45,6 +46,34 @@ class TestSimulation(DatabaseTest):
         self.arguments = Argument(name="test_argument",description="Argument used in testing.",data={"test":"Test argument data"})
         
         self.simulation = Simulation(self.arguments)
+
+    def test_range_kernel_presim(self):
+        presim = PreSimRangeTest()
+        self.simulation.kernels.append(presim)
+
+        presim.execute(self.simulation.arguments,self.simulation.diagnostics)
+
+        assert self.simulation.diagnostics["counter"].data == 0
+
+        assert self.simulation.arguments["range"].validate(5)
+
+    def test_range_simulation(self):
+        presim = PreSimRangeTest()
+        sim = SimRangeTest()
+        postsim = PostSimRangeTest()
+
+        self.simulation.kernels.append(presim)
+        self.simulation.kernels.append(sim)
+        self.simulation.kernels.append(postsim)
+
+        self.simulation.steps = 20
+
+        print("-----RUNNING TEST SIMULATION-----")
+        self.simulation.run()
+        print("-----END TEST SIMULATION-----")
+
+        assert self.simulation.diagnostics["counter"].data == 14
+
 
 
 class TestSimulationData(DatabaseTest):

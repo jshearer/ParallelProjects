@@ -13,14 +13,14 @@ class PreSimRangeTest(PreSimulateKernel):
 		PreSimulateKernel.__init__(self)
 		self.name = "PreSimulateRangeTest"
 
-	def execute(self):
+	def execute(self,args,diagnostics):
 		print("Setting kernel test data to 0")
-		self.diagnostic = Diagnostic()
-		self.diagnostic.data["test_counter"] = 0
-		self.simulation.diagnostics["test_kernel_counting"] = self.diagnostic
+		diagnostic = Diagnostic()
+		diagnostic.data = 0
+		diagnostics["counter"] = diagnostic
 
-		self.range = RangeArgument(range(0,15),0)
-		self.simulation.arguments["test_kernel_counting_range"] = self.range
+		range_arg = RangeArgument(range(0,15),0)
+		args["range"] = range_arg
 
 class SimRangeTest(SimulateKernel):
 	__mapper_args__ = {'polymorphic_identity': 'SimulateRangeTest'}
@@ -29,9 +29,9 @@ class SimRangeTest(SimulateKernel):
 		SimulateKernel.__init__(self)
 		self.name = "SimulateRangeTest"
 
-	def execute(self):
-		if(self.range.validate(self.diagnostic.data["test_counter"]+1)):
-			self.diagnostic.data["test_counter"]++
+	def execute(self,args,diagnostics):
+		if(args["range"].validate(diagnostics["counter"].data+1)):
+			diagnostics["counter"].data = diagnostics["counter"].data + 1
 			print("Incrementing test data")
 
 class PostSimRangeTest(PostSimulateKernel):
@@ -41,5 +41,5 @@ class PostSimRangeTest(PostSimulateKernel):
 		PostSimulateKernel.__init__(self)
 		self.name = "PostSimulateRangeTest"
 
-	def execute(self):
-		print("Test data is: "+str(self.diagnostic.data)+", range is:"+str(self.range))
+	def execute(self,args,diagnostics):
+		print("Test data is: "+str(diagnostics["counter"].data)+", range is:"+str(args["range"]))
