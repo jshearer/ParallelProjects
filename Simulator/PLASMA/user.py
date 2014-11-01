@@ -9,3 +9,8 @@ class User(Base):
 
 	children = 		relationship("User", backref=backref("parent", remote_side=[id]))
 
+	'''
+	from simulation class:
+	user = 		relationship("User", backref=backref("simulations", order_by=id))
+	'''
+

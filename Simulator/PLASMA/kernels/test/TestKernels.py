@@ -1,4 +1,4 @@
-from kernels.Kernel_Bases import *
+from PLASMA.kernels.Kernel_Bases import *
 
 '''
 TODO: Convert to Python 3 so super() is available. 

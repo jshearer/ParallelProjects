@@ -1,4 +1,4 @@
-from kernel import Kernel, KernelScope
+from PLASMA.kernel import Kernel, KernelScope
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import Column, Integer, String, PickleType, ForeignKey
 

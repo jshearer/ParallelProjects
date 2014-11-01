@@ -20,10 +20,6 @@ class Kernel(Base):
 					   "polymorphic_identity":"Base"} #check http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/ at the end to see why this is awesome
 
 	simulation = 	relationship("Simulation", backref="kernels")
-	'''
-	from class Argument
-	kernel = 		relationship("Kernel", backref=backref("arguments", order_by=id))
-	'''
 
 	def execute():
 		raise NotImplementedError("The kernel base class cannot be executed.")
@@ -39,33 +35,6 @@ class Note(Base):
 	children = 		relationship("Note", backref=backref("parent", remote_side=[id]))
 	simulation = 	relationship("Simulation", backref=backref("notes", order_by=id))
 	user = 			relationship("User", backref=backref("notes", order_by=id))
-
-class Argument(Base):
-	__tablename__ = "arguments"
-	id = 			Column(Integer, primary_key=True)
-	name =	 		Column(String, default="Base")
-	description = 	Column(String)
-	data = 			Column(PickleType, default=dict())
-	parent_id = 	Column(Integer, ForeignKey(id))
-	kernel_id = 	Column(Integer, ForeignKey("kernels.id"))
-
-	__mapper_args__ = {"polymorphic_on":name,
-					   "polymorphic_identity":"Base"} #check http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/ at the end to see why this is awesome
-
-	children = 		relationship("Argument", backref=backref("parent", remote_side=[id]))
-	kernel = 		relationship("Kernel", backref=backref("arguments", order_by=id))
-
-	'''
-	_validate is a recursive function, and exists on all subclasses.
-	_validate calls validate, so that validate only has to do actually validation,
-	and doesn't have to worry about continuing the recursion.
-	'''
-	def _validate(self):
-		for child in self.children:
-			if not child.validate() or (not child._validate()):
-				return False
-		return True
-
 
 class Diagnostic(Base):
 	__tablename__ = "diagnostics"
