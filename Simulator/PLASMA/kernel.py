@@ -35,15 +35,3 @@ class Note(Base):
 	children = 		relationship("Note", backref=backref("parent", remote_side=[id]))
 	simulation = 	relationship("Simulation", backref=backref("notes", order_by=id))
 	user = 			relationship("User", backref=backref("notes", order_by=id))
-
-class Diagnostic(Base):
-	__tablename__ = "diagnostics"
-	id = 			Column(Integer, primary_key=True)
-	name =	 		Column(String, default="Base")
-	content = 		Column(PickleType)
-	kernel_id = 	Column(Integer, ForeignKey("kernels.id"))
-
-	__mapper_args__ = {"polymorphic_on":name,
-					   "polymorphic_identity":"Base"} #check http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/ at the end to see why this is awesome
-
-	kernel = 		relationship("Kernel", backref=backref("diagnostics", order_by=id))

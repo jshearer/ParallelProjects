@@ -1,8 +1,8 @@
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from PLASMA.simulation import Simulation, Argument
-from PLASMA.kernel import Kernel, Note, Diagnostic
+from PLASMA.simulation import Simulation, Argument, Diagnostic
+from PLASMA.kernel import Kernel, Note
 from PLASMA.user import User
 
 from PLASMA.kernels.test.TestKernels import PreSimTest,SimTest,PostSimTest
@@ -82,6 +82,41 @@ class TestSimulationData(DatabaseTest):
         assert self.arguments["child_1"].data == child1_data
         assert self.arguments["child_2"].data == child2_data
 
+    def test_diagnostic_get_set(self):
+        child1 = Diagnostic(data={"test":1})
+        child2 = Diagnostic(data={"test":2})
+
+        self.simulation.diagnostics["test1"] = child1
+        self.simulation.diagnostics["test2"] = child2
+
+        assert self.simulation.diagnostics["test1"] == child1
+        assert self.simulation.diagnostics["test2"] == child2
+
+        assert self.simulation.diagnostics["test1"].data["test"] == 1
+        assert self.simulation.diagnostics["test2"].data["test"] == 2
+
+    def test_diagnostic_recursive_search(self):
+        child1 = Diagnostic(data={"test":1})
+        child2 = Diagnostic(data={"test":2})
+        child3 = Diagnostic(data={"test":3})
+        child4 = Diagnostic(data={"test":4})
+        child5 = Diagnostic(data={"test":5})
+
+        child1["level1_0"] = child2
+
+        child2["level2_0"] = child3
+        child2["level2_1"] = child4
+
+        child4["level3_0"] = child5
+
+        self.simulation.diagnostics["level0"] = child1
+
+        assert self.simulation.diagnostics["level1_0"].data["test"] == 2
+
+        assert self.simulation.diagnostics["level2_0"].data["test"] == 3
+        assert self.simulation.diagnostics["level2_1"].data["test"] == 4
+
+        assert self.simulation.diagnostics["level3_0"].data["test"] == 5
 
     def test_arguments_children(self):
         child_data = {"child":"Hi!"}
@@ -104,25 +139,25 @@ class TestSimulationData(DatabaseTest):
         assert self.simulation.steps == 0
 
     def test_range_argument(self):
-        assert RangeArgument(5,range(1,10)).validate()
-        assert not RangeArgument(5,range(10,100)).validate()
+        assert RangeArgument(range(1,10),5).validate()
+        assert not RangeArgument(range(10,100),5).validate()
 
     def test_argument_subclass_creation(self):
         rang = [range(1,5),range(1,10),range(10,100)]
 
-        rangearg_1 = RangeArgument(-1,rang[0])
-        rangearg_2 = RangeArgument(4,rang[1])
-        rangearg_3 = RangeArgument(74.5,rang[2])
+        rangearg_1 = RangeArgument(rang[0],-1)
+        rangearg_2 = RangeArgument(rang[1],4)
+        rangearg_3 = RangeArgument(rang[2],74.5)
 
-        assert rangearg_1.data['range']['min'] == min(rang[0])
-        assert rangearg_2.data['range']['max'] == max(rang[1])
-        assert rangearg_3.data['range']['min'] == min(rang[2])
-        assert rangearg_3.data['range']['max'] == max(rang[2])
+        assert rangearg_1.data["range"]["min"] == min(rang[0])
+        assert rangearg_2.data["range"]["max"] == max(rang[1])
+        assert rangearg_3.data["range"]["min"] == min(rang[2])
+        assert rangearg_3.data["range"]["max"] == max(rang[2])
 
     def test_recursive_validation(self):
-        rangearg_1 = RangeArgument(4,range(1,10))
-        rangearg_2 = RangeArgument(74.5,range(10,100))
-        rangearg_3 = RangeArgument(-1,range(1,5))
+        rangearg_1 = RangeArgument(range(1,10),4)
+        rangearg_2 = RangeArgument(range(10,100),74.5)
+        rangearg_3 = RangeArgument(range(1,5),-1)
 
         self.arguments["rangearg_1"] = rangearg_1
         self.arguments["rangearg_2"] = rangearg_2
