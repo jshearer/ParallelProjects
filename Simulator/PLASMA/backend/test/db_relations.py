@@ -1,16 +1,16 @@
 from sqlalchemy.engine import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 
-from PLASMA.simulation import Simulation, Argument, Diagnostic
-from PLASMA.kernel import Kernel, Note
-from PLASMA.user import User
+from backend.simulation import Simulation, Argument, Diagnostic
+from backend.kernel import Kernel, Note
+from backend.user import User
 
-from PLASMA.kernels.test.TestKernels import PreSimTest,SimTest,PostSimTest
-from PLASMA.kernels.Kernel_Bases import PreSimulateKernel, SimulateKernel, PostSimulateKernel
-from PLASMA.kernels.test.RangeKernelsTest import PostSimRangeTest, PreSimRangeTest, SimRangeTest
-from PLASMA.arguments.RangeArgument import RangeArgument
+from backend.kernels.test.TestKernels import PreSimTest,SimTest,PostSimTest
+from backend.kernels.Kernel_Bases import PreSimulateKernel, SimulateKernel, PostSimulateKernel
+from backend.kernels.test.RangeKernelsTest import PostSimRangeTest, PreSimRangeTest, SimRangeTest
+from backend.arguments.RangeArgument import RangeArgument
 
-from PLASMA import Base  # This is your declarative base class
+from backend.database import db_session
 
 import pytest
 from pytest import raises as raises
@@ -18,34 +18,17 @@ from pytest import raises as raises
 class DatabaseTest(object):
     @classmethod
     def setup_class(cls):
-        cls.engine = create_engine('sqlite:///testing.db', echo=True)
-        cls.connection = cls.engine.connect()
-        cls.transaction = cls.connection.begin()
-
-        cls.session = sessionmaker()
-        cls.session.configure(bind=cls.engine)
-        Base.metadata.create_all(cls.connection)
-
-    @classmethod
-    def teardown_class(cls):
-        cls.transaction.rollback()
-        cls.connection.close()
-        cls.engine.dispose()
-
-    def setup(self):
-        self.session = self.session()
-
-    def teardown(self):
-        self.session.rollback()
-        self.session.close()
+        cls.session = db_session
 
 class TestSimulation(DatabaseTest):
     def setup(self):
-        DatabaseTest.setup(self)
-
-        self.arguments = Argument(name="test_argument",description="Argument used in testing.",data={"test":"Test argument data"})
+        self.arguments = Argument(name="TestSimulation",description="An argument used in the TestSimulation class",data={"test":"TestSimulation"})
         
         self.simulation = Simulation(self.arguments)
+
+        self.session.add(self.arguments)
+        self.session.add(self.simulation)
+        self.session.commit()
 
     def test_range_kernel_presim(self):
         presim = PreSimRangeTest()
@@ -59,8 +42,11 @@ class TestSimulation(DatabaseTest):
 
     def test_range_simulation(self):
         presim = PreSimRangeTest()
+        presim.description = "PreSimulateKernel used in TestSimulation"
         sim = SimRangeTest()
+        sim.description = "SimulateKernel used in TestSimulation"
         postsim = PostSimRangeTest()
+        postsim.description = "PostSimulateKernel used in TestSimulation"
 
         self.simulation.kernels.append(presim)
         self.simulation.kernels.append(sim)
@@ -68,22 +54,29 @@ class TestSimulation(DatabaseTest):
 
         self.simulation.steps = 20
 
+        self.session.add(presim)
+        self.session.add(sim)
+        self.session.add(postsim)
+        self.session.commit()
+
         print("-----RUNNING TEST SIMULATION-----")
         self.simulation.run()
         print("-----END TEST SIMULATION-----")
 
+        self.session.commit()
+
         assert self.simulation.diagnostics["counter"].data == 14
-
-
 
 class TestSimulationData(DatabaseTest):
 
     def setup(self):
-        DatabaseTest.setup(self)
-
         self.arguments = Argument(name="test_argument",description="Argument used in testing.",data={"test":"Test argument data"})
         
         self.simulation = Simulation(self.arguments)
+
+        self.session.add(self.arguments)
+        self.session.add(self.simulation)
+        self.session.commit()
 
     def test_kernel_stages(self):
         kernels = [PreSimulateKernel(),PreSimulateKernel(),
@@ -91,7 +84,10 @@ class TestSimulationData(DatabaseTest):
                    PostSimulateKernel()]
 
         for kernel in kernels:
+            self.session.add(kernel)
             self.simulation.kernels.append(kernel)
+
+        self.session.commit()
 
         assert len(self.simulation.pre_kernels) == 2
         assert len(self.simulation.sim_kernels) == 3
@@ -106,6 +102,10 @@ class TestSimulationData(DatabaseTest):
         self.arguments["child_1"] = child_1
         self.arguments["child_2"] = child_2
 
+        self.session.add(child_1)
+        self.session.add(child_2)
+        self.session.commit()
+
         assert not "test" in self.arguments["child_1"].data
         assert "test" in self.arguments["child_2"].data
         assert self.arguments["child_1"].data == child1_data
@@ -117,6 +117,10 @@ class TestSimulationData(DatabaseTest):
 
         self.simulation.diagnostics["test1"] = child1
         self.simulation.diagnostics["test2"] = child2
+
+        self.session.add(child1)
+        self.session.add(child2)
+        self.session.commit()
 
         assert self.simulation.diagnostics["test1"] == child1
         assert self.simulation.diagnostics["test2"] == child2
@@ -140,6 +144,13 @@ class TestSimulationData(DatabaseTest):
 
         self.simulation.diagnostics["level0"] = child1
 
+        self.session.add(child1)
+        self.session.add(child2)
+        self.session.add(child3)
+        self.session.add(child4)
+        self.session.add(child5)
+        self.session.commit()
+
         assert self.simulation.diagnostics["level1_0"].data["test"] == 2
 
         assert self.simulation.diagnostics["level2_0"].data["test"] == 3
@@ -152,6 +163,9 @@ class TestSimulationData(DatabaseTest):
         child = Argument(name="child_arg", description="A child argument used for testing", data=child_data)
         self.arguments["child_arg"] = child
 
+        self.session.add(child)
+        self.session.commit()
+
         assert self.arguments["child_arg"] == child
         assert self.arguments["child_arg"].data == child_data
 
@@ -159,6 +173,9 @@ class TestSimulationData(DatabaseTest):
 
         sub_child = Argument(name="child_2", description="A child argument used for testing", data=child_data)
         child["child_2"] = sub_child
+
+        self.session.add(sub_child)
+        self.session.commit()
 
         assert child["child_2"] == sub_child
         assert self.arguments["child_2"] == sub_child

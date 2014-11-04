@@ -1,12 +1,12 @@
-from PLASMA.simulation import Argument
+from backend.simulation import Argument
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import Column, Integer, String, PickleType, ForeignKey
 
 class RangeArgument(Argument):
 	__mapper_args__ = {'polymorphic_identity': 'RangeArgument'}
 
-	def __init__(self,range,arg=0):
-		Argument.__init__(self,type="RangeArgument",description="An argument with a defined numeric range.")
+	def __init__(self,range,arg=0,**kwargs):
+		super(Argument,self).__init__(**kwargs)
 		self.arg = arg
 		self.range = {"min":min(range),"max":max(range)}
 

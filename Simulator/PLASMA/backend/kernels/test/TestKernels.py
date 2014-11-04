@@ -1,4 +1,4 @@
-from PLASMA.kernels.Kernel_Bases import *
+from backend.kernels.Kernel_Bases import *
 
 '''
 TODO: Convert to Python 3 so super() is available. 
@@ -7,8 +7,8 @@ TODO: Convert to Python 3 so super() is available.
 class PreSimTest(PreSimulateKernel):
 	__mapper_args__ = {'polymorphic_identity': 'PreSimulateTest'}
 
-	def __init__(self):
-		PreSimulateKernel.__init__(self)
+	def __init__(self,**kwargs):
+		super(PreSimTest,self).__init__(**kwargs)
 		self.name = "PreSimulateTest"
 
 	def execute(self):
@@ -18,8 +18,8 @@ class PreSimTest(PreSimulateKernel):
 class SimTest(SimulateKernel):
 	__mapper_args__ = {'polymorphic_identity': 'SimulateTest'}
 
-	def __init__(self):
-		SimulateKernel.__init__(self)
+	def __init__(self,**kwargs):
+		super(SimTest,self).__init__(**kwargs)
 		self.name = "SimulateTest"
 
 	def execute(self):
@@ -29,8 +29,8 @@ class SimTest(SimulateKernel):
 class PostSimTest(PostSimulateKernel):
 	__mapper_args__ = {'polymorphic_identity': 'PostSimulateTest'}
 
-	def __init__(self):
-		PostSimulateKernel.__init__(self)
+	def __init__(self,**kwargs):
+		super(PostSimTest,self).__init__(**kwargs)
 		self.name = "PostSimulateTest"
 
 	def execute(self):

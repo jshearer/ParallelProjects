@@ -1,17 +1,13 @@
-from sqlalchemy import create_engine, event, Column, Integer, String, PickleType, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import sessionmaker, mapper, relationship, backref
+from sqlalchemy import event
+from sqlalchemy.orm import mapper
 from sqlalchemy.inspection import inspect
+from sqlalchemy.exc import InvalidRequestError
 
-engine = create_engine('sqlite:///testing.db', echo=True)
-Session = sessionmaker()
-Session.configure(bind=engine)
-sess = Session()
-
+from database import db_session
 
 #this is nessecary so that the defaults defined in the column definitions
 #get applied instantly, as opposed to only after database commit.
+@event.listens_for(mapper,'init')
 def instant_defaults_listener(target, args, kwargs):
 	for key, column in inspect(target.__class__).columns.items():
 		if column.default is not None:
@@ -19,19 +15,7 @@ def instant_defaults_listener(target, args, kwargs):
 				setattr(target, key, column.default.arg(target))
 			else:
 				setattr(target, key, column.default.arg)
-
-
-event.listen(mapper, 'init', instant_defaults_listener)
-
-Base = declarative_base()
-
-from simulation import *
-from kernel import *
-from user import *
-#Import various polymorphic classes from their folders
-# from kernels import *
-# from arguments import *
-# from diagnostics import *
-
-Base.metadata.bind = engine
-Base.metadata.create_all()
+	try:
+		db_session.add(target)
+	except InvalidRequestError:
+		pass
