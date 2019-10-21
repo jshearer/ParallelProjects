@@ -8,7 +8,7 @@ Pillow==2.3.0
 SQLAlchemy==0.9.7
 Twisted-Core==13.2.0
 Twisted-Web==13.2.0
-Werkzeug==0.9.6
+Werkzeug==0.15.3
 adium-theme-ubuntu==0.3.4
 aniso8601==0.83
 apt-xapian-index==0.45
