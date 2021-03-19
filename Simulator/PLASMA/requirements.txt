@@ -1,7 +1,7 @@
 Flask==0.10.1
 Flask-RESTful==0.2.12
 Flask-Restless==0.15.0
-Jinja2==2.7.3
+Jinja2==2.11.3
 MarkupSafe==0.23
 PAM==0.4.2
 Pillow==2.3.0
