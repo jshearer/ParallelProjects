@@ -37,7 +37,7 @@ oauthlib==0.6.1
 oneconf==0.3.7
 pexpect==3.1
 piston-mini-client==0.7.5
-py==1.4.20
+py==1.10.0
 pyOpenSSL==0.13
 pycrypto==2.6.1
 pycups==1.9.66
