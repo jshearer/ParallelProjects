@@ -32,7 +32,7 @@ lockfile==0.8
 logilab-common==0.61.0
 lxml==3.3.3
 mimerender==0.5.4
-numpy==1.8.2
+numpy==1.21.0
 oauthlib==0.6.1
 oneconf==0.3.7
 pexpect==3.1
