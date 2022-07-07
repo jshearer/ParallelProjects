@@ -56,7 +56,7 @@ python-mimeparse==0.1.4
 pytz==2014.7
 pyxdg==0.25
 reportlab==3.0
-requests==2.2.1
+requests==2.20.0
 sessioninstaller==0.0.0
 simplejson==3.6.5
 six==1.5.2
